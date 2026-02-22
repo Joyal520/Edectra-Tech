@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0" />
+  <title>ElectraTech Live Quiz — Join Battle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .student-wrap {
+      width: 100%;
+      max-width: 500px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: auto;
+      padding-bottom: 20px;
+    }
+
+    .answer-btn {
+      height: 140px;
+      border-radius: 16px;
+      border: none;
+      color: white;
+      font-size: 2rem;
+      font-weight: 900;
+      box-shadow: 0 8px 0 rgba(0, 0, 0, 0.2);
+      transition: all 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .answer-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    .answer-btn.selected {
+      border: 4px solid white;
+      box-shadow: 0 0 20px white;
+    }
+
+    .answer-btn.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .timer-bar {
+      height: 8px;
+      background: var(--accent-secondary);
+      width: 100%;
+      transition: width 1s linear;
+      border-radius: 99px;
+    }
+
+    #feedback-msg {
+      font-size: 3rem;
+      font-weight: 900;
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    #points-won {
+      font-size: 1.5rem;
+      color: var(--accent-warning);
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="aurora"></div>
+  <div class="bg-overlay"></div>
+
+  <div class="student-wrap">
+    <!-- 1. JOIN SCREEN -->
+    <div id="screen-join" class="screen active stack" style="gap: 20px; justify-content: center;">
+      <div class="glass-card" style="padding: 32px; text-align: center;">
+        <h1 style="margin: 0 0 10px;">Enter Battle</h1>
+        <p style="color: var(--text-muted); margin-bottom: 24px;">Type Pin and choose a legendary name.</p>
+        <input id="joinPin" class="modern-input" placeholder="6-digit PIN" inputmode="numeric"
+          style="margin-bottom: 12px; text-align: center; letter-spacing: 4px;">
+        <input id="joinName" class="modern-input" placeholder="Hero Name"
+          style="margin-bottom: 24px; text-align: center;">
+        <button id="joinBtn" class="btn-primary" style="width: 100%;">Join Lobby</button>
+        <div id="joinStatus" style="margin-top: 16px; font-weight: 600;"></div>
+      </div>
+    </div>
+
+    <!-- 2. LOBBY SCREEN -->
+    <div id="screen-lobby" class="screen stack flex-center" style="gap: 20px; text-align: center;">
+      <div class="glass-card" style="padding: 40px; width: 100%;">
+        <div style="font-size: 4rem;">🎮</div>
+        <h1 id="welcomeName">You're in!</h1>
+        <p style="color: var(--text-muted);">See your name on the big screen?<br>Waiting for teacher to start...</p>
+        <div class="animate-pulse" style="margin-top: 30px; color: var(--accent-secondary); font-weight: 800;">BATTLE
+          COMMENCING SOON</div>
+      </div>
+    </div>
+
+    <!-- 3. QUESTION SCREEN -->
+    <div id="screen-question" class="screen">
+      <div class="glass-card" style="padding: 16px; margin-bottom: 12px;">
+        <div class="timer-bar" id="studentTimer"></div>
+      </div>
+      <div class="answer-grid">
+        <button class="answer-btn" id="btn-0" style="background: var(--kahoot-red);">▲</button>
+        <button class="answer-btn" id="btn-1" style="background: var(--kahoot-blue);">◆</button>
+        <button class="answer-btn" id="btn-2" style="background: var(--kahoot-green);">●</button>
+        <button class="answer-btn" id="btn-3" style="background: var(--kahoot-yellow);">■</button>
+      </div>
+    </div>
+
+    <!-- 4. FEEDBACK SCREEN -->
+    <div id="screen-feedback" class="screen stack flex-center">
+      <div id="feedback-icon" style="font-size: 6rem; margin-bottom: 20px;"></div>
+      <div id="feedback-msg">CORRECT!</div>
+      <div id="points-won">+ 850 pts</div>
+      <div class="glass-card" style="margin-top: 40px; padding: 20px; text-align: center;">
+        <div style="color: var(--text-muted);">Current Score</div>
+        <div id="currentScore" style="font-size: 2rem; font-weight: 800;">1,200</div>
+      </div>
+    </div>
+
+    <!-- 5. END SCREEN -->
+    <div id="screen-end" class="screen stack flex-center" style="text-align: center;">
+      <h1 style="font-size: 3rem;">FINISH!</h1>
+      <div id="finalRank" style="font-size: 5rem; font-weight: 900; color: var(--accent-warning);">#1</div>
+      <p id="finalScore" style="font-size: 1.5rem;">Total Points: 4,500</p>
+      <button onclick="location.reload()" class="btn-primary" style="margin-top: 40px;">Play Again</button>
+    </div>
+  </div>
+
+  <audio id="sfxCorrect" src="https://assets.mixkit.co/active_storage/sfx/1110/1110-preview.mp3" preload="auto"></audio>
+  <audio id="sfxWrong" src="https://assets.mixkit.co/active_storage/sfx/1115/1115-preview.mp3" preload="auto"></audio>
+  <script type="module" src="join.js"></script>
+</body>
+
+</html>

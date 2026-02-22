@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Quizzes can be read by anyone, created by anyone
+    match /quizzes/{quizId} {
+      allow read, create: if true;
+    }
+
+    // PINs mapping (Game PIN -> Game ID)
+    match /pins/{pin} {
+      allow read, create: if true;
+    }
+
+    // Game State
+    match /games/{gameId} {
+      allow read: if true;
+      // Only host can update the main game document (status, qIndex, etc.)
+      allow create, update: if request.resource.data.hostUid == request.auth.uid;
+      
+      // Players sub-collection
+      match /players/{playerId} {
+        // Anyone can read (for host leaderboard) or just host
+        allow read: if true;
+        // Students can create their own profile with score: 0
+        allow create: if request.auth.uid == playerId 
+                      && request.resource.data.score == 0;
+        // Only host can update scores
+        allow update: if get(/databases/$(database)/documents/games/$(gameId)).data.hostUid == request.auth.uid;
+      }
+
+      // Answers sub-collection
+      match /answers/{answerId} {
+        // Only host can read all answers
+        allow read: if get(/databases/$(database)/documents/games/$(gameId)).data.hostUid == request.auth.uid;
+        // Students can only write their own answer once (doc ID: uid_qIndex)
+        allow create: if request.auth.uid == request.resource.data.uid;
+        // No updates allowed to answers to prevent cheating
+        allow update: if false;
+      }
+    }
+  }
+}
