@@ -106,6 +106,7 @@ function launchConfetti() {
     sounds.podium.play().catch(() => { });
 
     function drawConfetti() {
+        if (!confettiRAF) return; // Guard
         ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
         confettiParticles.forEach(p => {
             ctx.beginPath();
@@ -127,7 +128,7 @@ function launchConfetti() {
         });
         confettiRAF = requestAnimationFrame(drawConfetti);
     }
-    drawConfetti();
+    confettiRAF = requestAnimationFrame(drawConfetti);
 
     // Stop after 8 seconds
     setTimeout(() => {
@@ -249,28 +250,32 @@ function startLeaderboardListener() {
     if (lbUnsubscribe) lbUnsubscribe();
     if (!currentGameId || lbFrozen) return;
 
-    const q = query(
+    // 1. Visual Leaderboard (Limited)
+    const qLb = query(
         collection(db, "games", currentGameId, "players"),
         orderBy("score", "desc"),
         Fire.limit(lbLimit)
     );
-
-    lbUnsubscribe = onSnapshot(q, (snap) => {
-        const newPlayers = [];
-        players = {}; // Reset global player list
-        snap.forEach(d => {
-            const pData = { id: d.id, ...d.data() };
-            newPlayers.push(pData);
-            players[d.id] = pData; // Populate for startBtn check
-        });
-        renderLeaderboard(newPlayers);
-        playerCountEl.textContent = `${snap.size} Players Joined`;
+    lbUnsubscribe = onSnapshot(qLb, (snap) => {
+        const lbData = [];
+        snap.forEach(d => lbData.push({ id: d.id, ...d.data() }));
+        renderLeaderboard(lbData);
 
         // Update battle log if in lobby
         const logEl = document.getElementById("lobbyLog");
         if (logEl && views.lobby.style.display !== "none") {
-            logEl.innerHTML = newPlayers.map(p => `<div>⚔️ ${p.name} joined the battle</div>`).join("");
+            logEl.innerHTML = lbData.map(p => `<div>⚔️ ${p.name} joined the battle</div>`).join("");
         }
+    });
+
+    // 2. Total Player Count (Unlimited - for logic checks)
+    const totalQ = collection(db, "games", currentGameId, "players");
+    onSnapshot(totalQ, (snap) => {
+        players = {};
+        snap.forEach(d => {
+            players[d.id] = { id: d.id, ...d.data() };
+        });
+        playerCountEl.textContent = `${snap.size} Players Joined`;
     });
 }
 

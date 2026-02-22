@@ -188,11 +188,39 @@ async function showFeedback(game) {
 
 async function showFinalResults() {
     const uid = auth.currentUser.uid;
-    const pSnap = await getDoc(doc(db, "games", currentGameId, "players", uid));
-    const score = pSnap.data().score;
 
-    // Rank from host is not available directly, we could do a one-time fetch or just show score
-    finalRank.textContent = "Game Over!";
-    finalScore.innerHTML = `Final Score: ${score.toLocaleString()} pts`;
+    // Fetch all players to calculate rank
+    const pSnap = await getDocs(query(collection(db, "games", currentGameId, "players"), orderBy("score", "desc")));
+    let rank = 0;
+    let score = 0;
+
+    pSnap.docs.forEach((d, i) => {
+        if (d.id === uid) {
+            rank = i + 1;
+            score = d.data().score;
+        }
+    });
+
+    const rankText = rank === 1 ? "🥇 1st PLACE" : rank === 2 ? "🥈 2nd PLACE" : rank === 3 ? "🥉 3rd PLACE" : `#${rank} Place`;
+    finalRank.textContent = rankText;
+    finalScore.innerHTML = `You earned <span style="color:var(--accent-secondary); font-size:2rem; display:block; margin:10px 0;">${score.toLocaleString()}</span> points!`;
+
     showScreen("end");
+
+    // Celebratory confetti for top 3
+    if (rank <= 3 && window.confetti) {
+        const duration = 5 * 1000;
+        const animationEnd = Date.now() + duration;
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+        const randomInRange = (min, max) => Math.random() * (max - min) + min;
+
+        const interval = setInterval(function () {
+            const timeLeft = animationEnd - Date.now();
+            if (timeLeft <= 0) return clearInterval(interval);
+            const particleCount = 50 * (timeLeft / duration);
+            window.confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+            window.confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+        }, 250);
+    }
 }
