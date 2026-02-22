@@ -1,6 +1,11 @@
 import { db, auth, ensureAnonAuth, TS, Fire, GameStatus, calculatePoints } from "./firebase.js";
 const { doc, setDoc, getDocs, collection, query, orderBy, onSnapshot, updateDoc, writeBatch } = Fire;
 
+// Helper: strip markdown bold/italic markers from text
+function cleanText(t) {
+    return t ? t.replace(/\*\*/g, "").replace(/\*/g, "").replace(/^\d+[.):] ?/, "").trim() : "";
+}
+
 // ── State ──────────────────────────────────────────────────────────────────
 let currentGameId = null;
 let currentQuiz = null;
@@ -11,48 +16,48 @@ let selectedQuizId = null;
 
 // ── Audio ──────────────────────────────────────────────────────────────────
 const sounds = {
-    lobby:   new Audio("https://assets.mixkit.co/active_storage/sfx/123/123-preview.mp3"),
-    game:    new Audio("https://assets.mixkit.co/active_storage/sfx/209/209-preview.mp3"),  // bg during questions
+    lobby: new Audio("https://assets.mixkit.co/active_storage/sfx/123/123-preview.mp3"),
+    game: new Audio("https://assets.mixkit.co/active_storage/sfx/209/209-preview.mp3"),  // bg during questions
     correct: new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"),
-    tick:    new Audio("https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"),
-    podium:  new Audio("https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"),
-    cheer:   new Audio("https://assets.mixkit.co/active_storage/sfx/2020/2020-preview.mp3")  // confetti cheer
+    tick: new Audio("https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"),
+    podium: new Audio("https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"),
+    cheer: new Audio("https://assets.mixkit.co/active_storage/sfx/2020/2020-preview.mp3")  // confetti cheer
 };
 sounds.lobby.loop = true;
-sounds.game.loop  = true;
+sounds.game.loop = true;
 
 function stopAllBg() {
     sounds.lobby.pause(); sounds.lobby.currentTime = 0;
-    sounds.game.pause();  sounds.game.currentTime  = 0;
+    sounds.game.pause(); sounds.game.currentTime = 0;
     sounds.podium.pause();
 }
 
 // ── DOM ────────────────────────────────────────────────────────────────────
 const views = {
-    setup:    document.getElementById("view-setup"),
-    lobby:    document.getElementById("view-lobby"),
+    setup: document.getElementById("view-setup"),
+    lobby: document.getElementById("view-lobby"),
     question: document.getElementById("view-question"),
-    podium:   document.getElementById("view-podium")
+    podium: document.getElementById("view-podium")
 };
 
-const quizSearchInput   = document.getElementById("quizSearchInput");
-const quizResults       = document.getElementById("quizResults");
+const quizSearchInput = document.getElementById("quizSearchInput");
+const quizResults = document.getElementById("quizResults");
 const selectedQuizBadge = document.getElementById("selectedQuizBadge");
 const selectedQuizTitle = document.getElementById("selectedQuizTitle");
-const clearQuizBtn      = document.getElementById("clearQuizBtn");
-const modeSelect        = document.getElementById("modeSelect");
-const createBtn         = document.getElementById("createBtn");
-const lobbyPin          = document.getElementById("lobbyPin");
-const playerCountEl     = document.getElementById("playerCount");
-const playerListEl      = document.getElementById("playerList");
-const startBtn          = document.getElementById("startBtn");
-const qTitle            = document.getElementById("qTitle");
-const qCounter          = document.getElementById("qCounter");
-const timerEl           = document.getElementById("timer");
-const optionsList       = document.getElementById("optionsList");
-const nextBtn           = document.getElementById("nextBtn");
-const answerStats       = document.getElementById("answerStats");
-const confettiCanvas    = document.getElementById("confetti-canvas");
+const clearQuizBtn = document.getElementById("clearQuizBtn");
+const modeSelect = document.getElementById("modeSelect");
+const createBtn = document.getElementById("createBtn");
+const lobbyPin = document.getElementById("lobbyPin");
+const playerCountEl = document.getElementById("playerCount");
+const playerListEl = document.getElementById("playerList");
+const startBtn = document.getElementById("startBtn");
+const qTitle = document.getElementById("qTitle");
+const qCounter = document.getElementById("qCounter");
+const timerEl = document.getElementById("timer");
+const optionsList = document.getElementById("optionsList");
+const nextBtn = document.getElementById("nextBtn");
+const answerStats = document.getElementById("answerStats");
+const confettiCanvas = document.getElementById("confetti-canvas");
 
 // ── Confetti ───────────────────────────────────────────────────────────────
 let confettiParticles = [];
@@ -61,10 +66,10 @@ let confettiRAF = null;
 function launchConfetti() {
     confettiCanvas.style.display = "block";
     const ctx = confettiCanvas.getContext("2d");
-    confettiCanvas.width  = window.innerWidth;
+    confettiCanvas.width = window.innerWidth;
     confettiCanvas.height = window.innerHeight;
 
-    const COLORS = ["#facc15","#6366f1","#ec4899","#10b981","#f97316","#38bdf8","#a78bfa"];
+    const COLORS = ["#facc15", "#6366f1", "#ec4899", "#10b981", "#f97316", "#38bdf8", "#a78bfa"];
     confettiParticles = Array.from({ length: 180 }, () => ({
         x: Math.random() * confettiCanvas.width,
         y: Math.random() * -confettiCanvas.height,
@@ -78,8 +83,8 @@ function launchConfetti() {
     }));
 
     // Play cheer sound
-    sounds.cheer.play().catch(() => {});
-    sounds.podium.play().catch(() => {});
+    sounds.cheer.play().catch(() => { });
+    sounds.podium.play().catch(() => { });
 
     function drawConfetti() {
         ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
@@ -197,8 +202,8 @@ function showView(viewId) {
     if (viewId === "podium") views.podium.style.display = "flex";
 
     stopAllBg();
-    if (viewId === "lobby")    sounds.lobby.play().catch(() => {});
-    if (viewId === "question") sounds.game.play().catch(() => {});
+    if (viewId === "lobby") sounds.lobby.play().catch(() => { });
+    // question bg music is started from startBtn click (requires user gesture)
 }
 
 // ── 1. Setup Phase ─────────────────────────────────────────────────────────
@@ -253,6 +258,8 @@ function listenToPlayers() {
 
 startBtn.addEventListener("click", () => {
     if (Object.keys(players).length === 0) return alert("Wait for players!");
+    // Start bg music here — inside a user gesture so autoplay is allowed
+    sounds.game.play().catch(() => { });
     goToNextQuestion();
 });
 
@@ -270,7 +277,7 @@ async function goToNextQuestion() {
     answerStats.style.display = "block";
 
     const q = currentQuiz.questions[nextIndex];
-    qTitle.textContent = q.question;
+    qTitle.textContent = cleanText(q.question);
     qCounter.textContent = `Question ${nextIndex + 1} of ${currentQuiz.questions.length}`;
 
     let duration = 20;
@@ -300,7 +307,7 @@ function renderOptions(options) {
         div.style.background = colors[i % 4];
         div.style.fontSize = "1.5rem";
         div.style.fontWeight = "800";
-        div.textContent = opt;
+        div.textContent = cleanText(opt);
         optionsList.appendChild(div);
     });
 }
@@ -312,7 +319,7 @@ function startTimer(sec) {
     timerInterval = setInterval(() => {
         left--;
         timerEl.textContent = left;
-        if (left <= 5 && left > 0) sounds.tick.play().catch(() => {});
+        if (left <= 5 && left > 0) sounds.tick.play().catch(() => { });
         if (left <= 0) {
             clearInterval(timerInterval);
             revealAnswer();
@@ -333,7 +340,7 @@ function listenToAnswers(qIndex) {
 }
 
 async function revealAnswer() {
-    sounds.correct.play().catch(() => {});
+    sounds.correct.play().catch(() => { });
     const qIndex = currentQuiz.currentQIndex;
     const q = currentQuiz.questions[qIndex];
     const gameRef = doc(db, "games", currentGameId);
@@ -359,19 +366,28 @@ async function revealAnswer() {
     batch.update(gameRef, { status: GameStatus.REVEAL, correctAnswerIndex: q.correctIndex });
     await batch.commit();
 
-    nextBtn.style.display = "block";
     answerStats.style.display = "none";
     const items = optionsList.children;
     for (let i = 0; i < items.length; i++) {
-        if (i !== q.correctIndex) items[i].style.opacity = "0.3";
-        else {
+        if (i !== q.correctIndex) {
+            items[i].style.opacity = "0.3";
+        } else {
+            items[i].style.opacity = "1";
             items[i].style.transform = "scale(1.05)";
             items[i].style.boxShadow = "0 0 30px var(--accent-success)";
+            items[i].style.border = "3px solid #10b981";
         }
     }
+    // Show Next button but also auto-advance after 4 seconds
+    nextBtn.style.display = "block";
+    clearTimeout(window._autoAdvanceTimer);
+    window._autoAdvanceTimer = setTimeout(() => goToNextQuestion(), 4000);
 }
 
-nextBtn.addEventListener("click", goToNextQuestion);
+nextBtn.addEventListener("click", () => {
+    clearTimeout(window._autoAdvanceTimer);
+    goToNextQuestion();
+});
 
 // ── 4. Podium Phase ────────────────────────────────────────────────────────
 async function showPodium() {
