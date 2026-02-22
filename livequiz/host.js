@@ -301,6 +301,11 @@ async function init() {
     await ensureAnonAuth();
     await loadQuizzes();
 
+    // Initialize Lucide icons
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
+
     // Leaderboard buttons
     document.getElementById("freezeLbBtn")?.addEventListener("click", toggleLbFreeze);
     document.getElementById("freezeGameLbBtn")?.addEventListener("click", toggleLbFreeze);

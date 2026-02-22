@@ -138,11 +138,29 @@
          * Dynamic Icon Factory
          */
         const createReactIcon = (iconName) => (props) => {
-            if (!window.lucide || !window.lucide.icons) return null;
+            const [ready, setReady] = useState(false);
+
+            useEffect(() => {
+                const checkLucide = () => {
+                    if (window.lucide && window.lucide.icons) {
+                        setReady(true);
+                    } else {
+                        setTimeout(checkLucide, 50);
+                    }
+                };
+                checkLucide();
+            }, []);
+
+            if (!ready) return <div style={{ width: props.size || 24, height: props.size || 24 }} />;
+
             // Convert CamelCase to kebab-case (e.g., BookOpen -> book-open)
             const kebabName = iconName.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
             const iconData = window.lucide.icons[kebabName] || window.lucide.icons[iconName.toLowerCase()];
-            if (!iconData) return null;
+
+            if (!iconData) {
+                console.warn(`Icon not found: ${iconName} (tried ${kebabName})`);
+                return null;
+            }
 
             const { size = 24, className = "", color = "currentColor", strokeWidth = 2, ...others } = props;
             const [tag, attrs, children] = iconData;
@@ -155,7 +173,7 @@
                     height: size,
                     stroke: color,
                     strokeWidth,
-                    className: `lucide lucide-${iconName.toLowerCase()} ${className}`,
+                    className: `lucide lucide-${kebabName} ${className}`,
                     ...others
                 },
                 children.map((child, i) => createElement(child[0], { key: i, ...child[1] }))
