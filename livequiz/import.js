@@ -82,12 +82,13 @@ function parseEQM(text) {
         /^QUESTION\s*\d*\s*[:.]/i.test(l) ||    // Question:
         /^\d+\s*[.:]\s+\S/.test(l);             // 1. text  or  1: text (must have space + char after)
 
-    // Detect answer lines (must start with known prefix)
+    // Detect answer lines (must start with known prefix, optional leading *)
     const isAnswerLine = l =>
-        /^[A-Da-d]\s*[):.\-]\s/.test(l) ||      // A)  A:  a.  B)
-        /^A:\s/i.test(l) ||                     // A:
-        /^ANS(WER)?\s*:\s/i.test(l) ||          // ANSWER:  ANS:
-        /^-\s/.test(l);                         // -  (bullet)
+        /^[\*]?\s*[A-Da-d]\s*[):.\-]\s/.test(l) ||      // *A)  A:  a.  B)
+        /^[\*]?\s*A:\s/i.test(l) ||                     // *A:
+        /^[\*]?\s*ANS(WER)?\s*:\s/i.test(l) ||          // *ANSWER:  *ANS:
+        /^[\*]?\s*-\s/.test(l) ||                       // *-  (bullet)
+        /^\*\s/.test(l);                                // * (marker only)
 
     for (const line of lines) {
         // TITLE
@@ -107,12 +108,13 @@ function parseEQM(text) {
         }
         // ANSWER
         else if (isAnswerLine(line) && currentQ) {
-            // Remove the answer prefix
+            // Remove the answer prefix (including optional leading *)
             let ans = line
-                .replace(/^[A-Da-d]\s*[):.\-]\s*/i, "")
-                .replace(/^A:\s*/i, "")
-                .replace(/^ANS(WER)?\s*:\s*/i, "")
-                .replace(/^-\s*/, "")
+                .replace(/^[\*]?\s*[A-Da-d]\s*[):.\-]\s*/i, "")
+                .replace(/^[\*]?\s*A:\s*/i, "")
+                .replace(/^[\*]?\s*ANS(WER)?\s*:\s*/i, "")
+                .replace(/^[\*]?\s*-\s*/, "")
+                .replace(/^\*\s*/, "")
                 .trim();
 
             // Detect correct marker before stripping
