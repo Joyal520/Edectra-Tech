@@ -531,10 +531,10 @@
 
         const QuizHubView = ({ onBack }) => {
             const modes = [
-                { id: 'teacher', title: 'Teacher Mode', icon: Users, desc: 'Host a live quiz session for your class.', link: 'livequiz/host.html?mode=classic', color: 'blue' },
-                { id: 'student', title: 'Student Mode', icon: User, desc: 'Join a battle using a 6-digit PIN.', link: 'livequiz/join.html', color: 'purple' },
-                { id: 'builder', title: 'Quiz Builder', icon: BookOpen, desc: 'Create and import quizzes instantly.', link: 'livequiz/import.html', color: 'emerald' },
-                { id: 'battle', title: 'Battle Mode', icon: Swords, desc: 'High-speed competitive quiz battle.', link: 'livequiz/host.html?mode=battle', color: 'rose' }
+                { id: 'teacher', title: 'Teacher Mode', image: 'Teacher.png', desc: 'Host a live quiz session for your class.', link: 'livequiz/host.html?mode=classic', color: 'blue' },
+                { id: 'student', title: 'Student Mode', image: 'student.png', desc: 'Join a battle using a 6-digit PIN.', link: 'livequiz/join.html', color: 'purple' },
+                { id: 'builder', title: 'Quiz Builder', image: 'quiz_builder.png', desc: 'Create and import quizzes instantly.', link: 'livequiz/import.html', color: 'emerald' },
+                { id: 'battle', title: 'Battle Mode', image: 'battle_mood.png', desc: 'High-speed competitive quiz battle.', link: 'livequiz/host.html?mode=battle', color: 'rose' }
             ];
 
             return (
@@ -553,7 +553,6 @@
 
                         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {modes.map((mode, i) => {
-                                const Icon = mode.icon;
                                 return (
                                     <motion.div
                                         key={mode.id}
@@ -564,8 +563,8 @@
                                         className="glass-panel p-8 rounded-[2.5rem] flex flex-col items-center group cursor-pointer border-white/5 hover:border-white/20 transition-all"
                                         onClick={() => window.location.href = mode.link}
                                     >
-                                        <div className={`w-16 h-16 rounded-3xl bg-white/5 flex items-center justify-center text-blue-400 mb-6 group-hover:scale-110 transition-transform`}>
-                                            <Icon size={32} />
+                                        <div className={`w-20 h-20 rounded-3xl bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform overflow-hidden`}>
+                                            <img src={mode.image} alt={mode.title} className="w-full h-full object-contain p-2" />
                                         </div>
                                         <h3 className="text-xl font-extrabold mb-3">{mode.title}</h3>
                                         <p className="text-xs text-gray-400 leading-relaxed mb-8">{mode.desc}</p>
