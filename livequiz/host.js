@@ -20,7 +20,7 @@ let selectedQuizId = null;
 
 // ── Audio ──────────────────────────────────────────────────────────────────
 const sounds = {
-    lobby: new Audio("https://assets.mixkit.co/active_storage/sfx/123/123-preview.mp3"),
+    lobby: new Audio("waiting_sound.wav"),
     game: new Audio("quiz)background.mp3"),  // local bg during gameplay
     correct: new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"),
     tick: new Audio("https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"),
