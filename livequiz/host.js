@@ -257,7 +257,12 @@ function startLeaderboardListener() {
 
     lbUnsubscribe = onSnapshot(q, (snap) => {
         const newPlayers = [];
-        snap.forEach(d => newPlayers.push({ id: d.id, ...d.data() }));
+        players = {}; // Reset global player list
+        snap.forEach(d => {
+            const pData = { id: d.id, ...d.data() };
+            newPlayers.push(pData);
+            players[d.id] = pData; // Populate for startBtn check
+        });
         renderLeaderboard(newPlayers);
         playerCountEl.textContent = `${snap.size} Players Joined`;
 
