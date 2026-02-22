@@ -139,7 +139,9 @@
          */
         const createReactIcon = (iconName) => (props) => {
             if (!window.lucide || !window.lucide.icons) return null;
-            const iconData = window.lucide.icons[iconName.toLowerCase()];
+            // Convert CamelCase to kebab-case (e.g., BookOpen -> book-open)
+            const kebabName = iconName.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+            const iconData = window.lucide.icons[kebabName] || window.lucide.icons[iconName.toLowerCase()];
             if (!iconData) return null;
 
             const { size = 24, className = "", color = "currentColor", strokeWidth = 2, ...others } = props;

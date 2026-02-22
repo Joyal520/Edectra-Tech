@@ -20,7 +20,8 @@ import {
   deleteDoc,
   getDocs,
   writeBatch,
-  increment
+  increment,
+  limit
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 // ✅ Your Firebase config (you already got this from Firebase Console)
@@ -63,7 +64,8 @@ export const Fire = {
   deleteDoc,
   getDocs,
   writeBatch,
-  increment
+  increment,
+  limit
 };
 
 // Game Status Constants

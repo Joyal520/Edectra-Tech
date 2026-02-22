@@ -11,24 +11,30 @@ let currentGameId = null;
 let currentQuiz = null;
 let players = {};
 let timerInterval = null;
+let lbUnsubscribe = null;
+let lbLimit = 10;
+let lbFrozen = false;
+let lastRanks = {};
 let allQuizzes = []; // { id, title, questions }
 let selectedQuizId = null;
 
 // ── Audio ──────────────────────────────────────────────────────────────────
 const sounds = {
     lobby: new Audio("https://assets.mixkit.co/active_storage/sfx/123/123-preview.mp3"),
-    game: new Audio("https://assets.mixkit.co/active_storage/sfx/209/209-preview.mp3"),  // bg during questions
+    game: new Audio("quiz)background.mp3"),  // local bg during gameplay
     correct: new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"),
     tick: new Audio("https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"),
     podium: new Audio("https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"),
-    cheer: new Audio("https://assets.mixkit.co/active_storage/sfx/2020/2020-preview.mp3")  // confetti cheer
+    cheer: new Audio("popper.mp3")  // Updated to popper.mp3 as requested
 };
 sounds.lobby.loop = true;
 sounds.game.loop = true;
 
-function stopAllBg() {
+function stopAllBg(keepGameMusic = false) {
     sounds.lobby.pause(); sounds.lobby.currentTime = 0;
-    sounds.game.pause(); sounds.game.currentTime = 0;
+    if (!keepGameMusic) {
+        sounds.game.pause(); sounds.game.currentTime = 0;
+    }
     sounds.podium.pause();
 }
 
@@ -59,6 +65,18 @@ const nextBtn = document.getElementById("nextBtn");
 const answerStats = document.getElementById("answerStats");
 const confettiCanvas = document.getElementById("confetti-canvas");
 
+// Creation/Tab Elements
+const tabSelect = document.getElementById("tabSelect");
+const tabCreate = document.getElementById("tabCreate");
+const sectionSelect = document.getElementById("sectionSelect");
+const sectionCreate = document.getElementById("sectionCreate");
+const quizTitleInput = document.getElementById("quizTitleInput");
+const creationModeSelect = document.getElementById("creationMode");
+const manualModeForm = document.getElementById("manualModeForm");
+const importModeGuide = document.getElementById("importModeGuide");
+const manualQ = document.getElementById("manualQ");
+const manualOpts = document.querySelectorAll(".manual-opt");
+
 // ── Confetti ───────────────────────────────────────────────────────────────
 let confettiParticles = [];
 let confettiRAF = null;
@@ -82,7 +100,8 @@ function launchConfetti() {
         fall: Math.random() * 4 + 2
     }));
 
-    // Play cheer sound
+    // Play pop sound
+    sounds.cheer.currentTime = 0;
     sounds.cheer.play().catch(() => { });
     sounds.podium.play().catch(() => { });
 
@@ -172,10 +191,120 @@ document.addEventListener("click", (e) => {
 
 clearQuizBtn.addEventListener("click", clearSelection);
 
+// ── Leaderboard UI Helpers ─────────────────────────────────────────────────
+function toggleLbFreeze() {
+    lbFrozen = !lbFrozen;
+    const btns = [document.getElementById("freezeLbBtn"), document.getElementById("freezeGameLbBtn")];
+    btns.forEach(btn => {
+        if (btn) {
+            btn.textContent = lbFrozen ? "Resume" : "Freeze";
+            btn.classList.toggle("active", lbFrozen);
+        }
+    });
+    if (lbFrozen) {
+        if (lbUnsubscribe) lbUnsubscribe();
+    } else {
+        startLeaderboardListener();
+    }
+}
+
+function toggleLbLimit() {
+    lbLimit = (lbLimit === 10) ? 50 : 10;
+    const btn = document.getElementById("toggleTopBtn");
+    if (btn) {
+        btn.textContent = lbLimit === 50 ? "Top 50" : "Top 10";
+        btn.classList.toggle("active", lbLimit === 50);
+    }
+    if (!lbFrozen) startLeaderboardListener();
+}
+
+function renderLeaderboard(data) {
+    const lists = [document.getElementById("leaderboardList"), document.getElementById("gameLeaderboardList")];
+    lists.forEach(list => {
+        if (!list) return;
+        list.innerHTML = "";
+        data.forEach((p, i) => {
+            const rank = i + 1;
+            const row = document.createElement("div");
+            row.className = "lb-row";
+            if (lastRanks[p.id]) {
+                if (rank < lastRanks[p.id]) row.classList.add("rank-up");
+                else if (rank > lastRanks[p.id]) row.classList.add("rank-down");
+            }
+            lastRanks[p.id] = rank;
+            row.innerHTML = `
+                <div class="lb-rank">#${rank}</div>
+                <div class="lb-name">${p.name}</div>
+                <div class="lb-score">${(p.score || 0).toLocaleString()}</div>
+            `;
+            list.appendChild(row);
+        });
+        if (data.length === 0) {
+            list.innerHTML = `<p style="color: var(--text-muted); text-align: center;">Waiting for heroes...</p>`;
+        }
+    });
+}
+
+function startLeaderboardListener() {
+    if (lbUnsubscribe) lbUnsubscribe();
+    if (!currentGameId || lbFrozen) return;
+
+    const q = query(
+        collection(db, "games", currentGameId, "players"),
+        orderBy("score", "desc"),
+        Fire.limit(lbLimit)
+    );
+
+    lbUnsubscribe = onSnapshot(q, (snap) => {
+        const newPlayers = [];
+        snap.forEach(d => newPlayers.push({ id: d.id, ...d.data() }));
+        renderLeaderboard(newPlayers);
+        playerCountEl.textContent = `${snap.size} Players Joined`;
+
+        // Update battle log if in lobby
+        const logEl = document.getElementById("lobbyLog");
+        if (logEl && views.lobby.style.display !== "none") {
+            logEl.innerHTML = newPlayers.map(p => `<div>⚔️ ${p.name} joined the battle</div>`).join("");
+        }
+    });
+}
+
+// ── Tab & Creation Logic ──────────────────────────────────────────────────
+tabSelect.addEventListener("click", () => {
+    tabSelect.classList.add("active");
+    tabCreate.classList.remove("active");
+    sectionSelect.style.display = "block";
+    sectionCreate.style.display = "none";
+    clearSelection();
+});
+
+tabCreate.addEventListener("click", () => {
+    tabCreate.classList.add("active");
+    tabSelect.classList.remove("active");
+    sectionCreate.style.display = "block";
+    sectionSelect.style.display = "none";
+    clearSelection(); // Clear search selection if we're creating
+});
+
+creationModeSelect.addEventListener("change", () => {
+    if (creationModeSelect.value === "manual") {
+        manualModeForm.style.display = "flex";
+        importModeGuide.style.display = "none";
+    } else {
+        manualModeForm.style.display = "none";
+        importModeGuide.style.display = "block";
+    }
+});
+
 // ── Initialization ─────────────────────────────────────────────────────────
 async function init() {
     await ensureAnonAuth();
     await loadQuizzes();
+
+    // Leaderboard buttons
+    document.getElementById("freezeLbBtn")?.addEventListener("click", toggleLbFreeze);
+    document.getElementById("freezeGameLbBtn")?.addEventListener("click", toggleLbFreeze);
+    document.getElementById("toggleTopBtn")?.addEventListener("click", toggleLbLimit);
 
     // If redirected from importer with a quizId, auto-select it
     const params = new URLSearchParams(window.location.search);
@@ -201,18 +330,52 @@ function showView(viewId) {
     views[viewId].style.display = (viewId === "setup" || viewId === "question") ? "flex" : "grid";
     if (viewId === "podium") views.podium.style.display = "flex";
 
-    stopAllBg();
-    if (viewId === "lobby") sounds.lobby.play().catch(() => { });
-    // question bg music is started from startBtn click (requires user gesture)
+    // Stop lobby music when entering any game phase
+    if (viewId !== "setup" && viewId !== "lobby") {
+        sounds.lobby.pause();
+        sounds.lobby.currentTime = 0;
+    }
+
+    if (viewId === "lobby") {
+        stopAllBg(); // Clear all including game music if we're back in lobby
+        sounds.lobby.play().catch(() => { });
+    }
 }
 
 // ── 1. Setup Phase ─────────────────────────────────────────────────────────
 createBtn.addEventListener("click", async () => {
-    if (!selectedQuizId) return alert("Please search and select a quiz first!");
+    let quizIdToStart = selectedQuizId;
 
-    const quizSnap = await Fire.getDoc(doc(db, "quizzes", selectedQuizId));
+    // Handle Manual Creation
+    if (tabCreate.classList.contains("active") && creationModeSelect.value === "manual") {
+        const title = quizTitleInput.value.trim();
+        const question = manualQ.value.trim();
+        const options = Array.from(manualOpts).map(i => i.value.trim()).filter(v => v);
+        const correctIndex = parseInt(document.querySelector('input[name="correct"]:checked')?.value || "0");
+
+        if (!title || !question || options.length < 2) {
+            return alert("Please enter a title, question, and at least 2 options!");
+        }
+
+        const newQuiz = {
+            title,
+            questions: [{
+                question,
+                options,
+                correctIndex
+            }],
+            createdAt: TS()
+        };
+
+        const docRef = await Fire.addDoc(collection(db, "quizzes"), newQuiz);
+        quizIdToStart = docRef.id;
+    }
+
+    if (!quizIdToStart) return alert("Please select or create a quiz first!");
+
+    const quizSnap = await Fire.getDoc(doc(db, "quizzes", quizIdToStart));
     currentQuiz = quizSnap.data();
-    currentQuiz.id = selectedQuizId;
+    currentQuiz.id = quizIdToStart;
     const gameMode = modeSelect.value;
 
     const pin = String(Math.floor(100000 + Math.random() * 900000));
@@ -232,29 +395,10 @@ createBtn.addEventListener("click", async () => {
     await setDoc(doc(db, "pins", pin), { gameId: currentGameId });
     lobbyPin.textContent = pin;
     showView("lobby");
-    listenToPlayers();
+    startLeaderboardListener();
 });
 
-// ── 2. Lobby Phase ─────────────────────────────────────────────────────────
-function listenToPlayers() {
-    onSnapshot(collection(db, "games", currentGameId, "players"), (snap) => {
-        players = {};
-        playerListEl.innerHTML = "";
-        const logEl = document.getElementById("lobbyLog");
-        snap.forEach(d => {
-            const p = d.data();
-            players[d.id] = p;
-            const pill = document.createElement("div");
-            pill.className = "player-pill";
-            pill.textContent = p.name;
-            playerListEl.appendChild(pill);
-        });
-        playerCountEl.textContent = `${snap.size} Players Joined`;
-        if (snap.size > 0) {
-            logEl.innerHTML = [...snap.docs].map(d => `<div>⚔️ ${d.data().name} joined the battle</div>`).join("");
-        }
-    });
-}
+// Removed old listenToPlayers as it's merged into startLeaderboardListener
 
 startBtn.addEventListener("click", () => {
     if (Object.keys(players).length === 0) return alert("Wait for players!");
@@ -282,7 +426,7 @@ async function goToNextQuestion() {
 
     let duration = 20;
     if (modeSelect?.value === "speed" || currentQuiz.gameMode === "speed") duration = 10;
-    if (modeSelect?.value === "survival" || currentQuiz.gameMode === "survival") duration = 30;
+    if (modeSelect?.value === "survival" || currentQuiz.gameMode === "survival") duration = 60;
 
     await updateDoc(doc(db, "games", currentGameId), {
         status: GameStatus.QUESTION,
@@ -397,7 +541,7 @@ async function showPodium() {
     const leaderboard = [];
     pSnap.forEach(d => leaderboard.push(d.data()));
 
-    stopAllBg();
+    stopAllBg(false); // Stop game music now that we are at the podium
     showView("podium");
 
     const spots = [
@@ -406,14 +550,27 @@ async function showPodium() {
         document.querySelector("#podium-3")
     ];
     spots.forEach((s, i) => {
-        if (leaderboard[i] && s) {
-            s.querySelector(".name").textContent = leaderboard[i].name;
-            s.querySelector(".score").textContent = `${leaderboard[i].score.toLocaleString()} pts`;
+        if (s) {
+            s.style.opacity = "0"; // Initial state for animation
+            s.classList.remove("reveal");
+            if (leaderboard[i]) {
+                s.querySelector(".name").textContent = leaderboard[i].name;
+                s.querySelector(".score").textContent = `${leaderboard[i].score.toLocaleString()} pts`;
+            }
         }
     });
 
-    // 🎉 Confetti + sounds
-    launchConfetti();
+    // Sequence the reveal
+    setTimeout(() => {
+        if (spots[2]) spots[2].classList.add("reveal"); // 3rd
+        setTimeout(() => {
+            if (spots[1]) spots[1].classList.add("reveal"); // 2nd
+            setTimeout(() => {
+                if (spots[0]) spots[0].classList.add("reveal"); // 1st
+                launchConfetti();
+            }, 800);
+        }, 800);
+    }, 500);
 }
 
 init();

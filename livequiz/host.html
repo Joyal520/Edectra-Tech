@@ -141,8 +141,10 @@
     /* Confetti Canvas */
     #confetti-canvas {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       pointer-events: none;
       z-index: 9999;
       display: none;
@@ -156,34 +158,89 @@
   <canvas id="confetti-canvas"></canvas>
 
   <!-- 1. SELECT QUIZ VIEW -->
-  <div id="view-setup" class="glass-card flex-center stack"
-    style="max-width: 600px; margin: 100px auto; padding: 40px; text-align: center;">
-    <h1 style="margin-top: 0;">Prepare for Battle</h1>
-    <p style="color: var(--text-muted);">Type the title of a quiz to find it.</p>
+  <div id="view-setup" class="glass-card stack"
+    style="max-width: 600px; margin: 60px auto; padding: 32px; text-align: center;">
+    <h1 style="margin-top: 0; margin-bottom: 8px;">Prepare for Battle</h1>
+    <p style="color: var(--text-muted); margin-bottom: 24px;">Prepare your students for an epic learning journey.</p>
 
-    <!-- Selected quiz badge -->
+    <div class="tabs">
+      <div id="tabSelect" class="tab active">Select Quiz</div>
+      <div id="tabCreate" class="tab">Create Quiz</div>
+    </div>
+
+    <!-- Tab 1: Select -->
+    <div id="sectionSelect">
+      <!-- Search input -->
+      <div class="quiz-search-wrap" style="width: 100%;">
+        <input id="quizSearchInput" class="modern-input" type="text" placeholder="Search saved quizzes..."
+          autocomplete="off" />
+        <div id="quizResults"></div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Create -->
+    <div id="sectionCreate" style="display: none;">
+      <input id="quizTitleInput" class="modern-input" type="text" placeholder="Create a title..." autocomplete="off"
+        style="margin-bottom: 16px;" />
+
+      <select id="creationMode" class="modern-input" style="margin-bottom: 16px;">
+        <option value="manual">Manual Entry (Kahoot Style)</option>
+        <option value="import">Import Guide (AI Format)</option>
+      </select>
+
+      <!-- Manual Mode -->
+      <div id="manualModeForm" class="manual-form">
+        <textarea id="manualQ" class="modern-input" placeholder="Enter Question" style="height: 80px;"></textarea>
+        <div class="option-input-wrap">
+          <input type="radio" name="correct" value="0" class="correct-radio" checked>
+          <input type="text" class="modern-input manual-opt" placeholder="Option 1">
+        </div>
+        <div class="option-input-wrap">
+          <input type="radio" name="correct" value="1" class="correct-radio">
+          <input type="text" class="modern-input manual-opt" placeholder="Option 2">
+        </div>
+        <div class="option-input-wrap">
+          <input type="radio" name="correct" value="2" class="correct-radio">
+          <input type="text" class="modern-input manual-opt" placeholder="Option 3">
+        </div>
+        <div class="option-input-wrap">
+          <input type="radio" name="correct" value="3" class="correct-radio">
+          <input type="text" class="modern-input manual-opt" placeholder="Option 4">
+        </div>
+      </div>
+
+      <!-- Import Mode AI Guide -->
+      <div id="importModeGuide" class="ai-guide" style="display: none;">
+        <p>💡 <b>Pro Tip:</b> Use AI to generate quizzes in Edectra format.</p>
+        <p>Paste this prompt into ChatGPT/Gemini:</p>
+        <code>Create a 10-question quiz about [Topic] in this format:
+TITLE: Quiz Title
+Q: Question text?
+A: Option 1
+A: Option 2*
+A: Option 3
+A: Option 4</code>
+        <a href="import.html" style="color: var(--accent-secondary); font-weight: 800; text-decoration: none;">Open
+          Importer to Paste Code →</a>
+      </div>
+    </div>
+
+    <hr style="width: 100%; border: 0; border-top: 1px solid var(--glass-border); margin: 24px 0;">
+
+    <!-- Common settings -->
     <div id="selectedQuizBadge" class="selected-quiz-badge" style="width:100%;">
       <span>✅</span>
       <span id="selectedQuizTitle">No quiz selected</span>
       <button class="clear-btn" id="clearQuizBtn" title="Clear selection">✕</button>
     </div>
 
-    <!-- Search input -->
-    <div class="quiz-search-wrap" style="width: 100%;">
-      <input id="quizSearchInput" class="modern-input" type="text" placeholder="Search quiz by title..."
-        autocomplete="off" />
-      <div id="quizResults"></div>
-    </div>
-
     <select id="modeSelect" class="modern-input" style="margin-bottom: 24px; width: 100%;">
       <option value="classic">Classic Mode</option>
       <option value="speed">Speed Battle (10s | 2x Bonus)</option>
-      <option value="survival">Survival (30s | -200 on Wrong)</option>
+      <option value="survival">Survival (60s | -200 on Wrong)</option>
     </select>
-    <button id="createBtn" class="btn-primary" style="width: 100%;">Initialize Game PIN</button>
 
-    <p style="margin-top: 20px; font-size: 14px; color: var(--text-muted);">Need to add a quiz? <a href="import.html"
-        style="color: var(--accent-secondary);">Open Importer</a></p>
+    <button id="createBtn" class="btn-primary" style="width: 100%;">Initialize Game PIN</button>
   </div>
 
   <!-- 2. LOBBY VIEW -->
@@ -193,8 +250,19 @@
         with PIN:</h2>
       <div id="lobbyPin" class="pin-display animate-pulse">------</div>
       <div style="margin-top: 40px;">
-        <h3 id="playerCount">0 Players Joined</h3>
-        <div id="playerList" style="margin-top: 20px; text-align: left;"></div>
+        <div class="leaderboard-container">
+          <div class="leaderboard-header">
+            <h3 id="playerCount" style="margin:0;">0 Players Joined</h3>
+            <div class="leaderboard-controls">
+              <button id="freezeLbBtn" class="btn-small">Freeze</button>
+              <button id="toggleTopBtn" class="btn-small">Top 10</button>
+            </div>
+          </div>
+          <div id="leaderboardList" class="leaderboard-list">
+            <!-- Rows injected by JS -->
+            <p style="color: var(--text-muted); text-align: center;">Waiting for heroes to join...</p>
+          </div>
+        </div>
       </div>
       <div class="btn-group">
         <button id="startBtn" class="btn-primary" style="flex: 1;">Start Game</button>
@@ -226,38 +294,55 @@
           <button id="nextBtn" class="btn-primary">Next Phase</button>
         </div>
       </div>
-      <div class="glass-card" style="padding: 24px;">
-        <h3>Live Submissions</h3>
-        <div id="answerStats" style="font-size: 32px; font-weight: 800; text-align: center; margin: 40px 0;">0 / 0</div>
-        <div class="muted">Answers received</div>
+      <div class="glass-card stack" style="padding: 24px; gap: 20px;">
+        <div>
+          <h3>Live Submissions</h3>
+          <div id="answerStats" style="font-size: 32px; font-weight: 800; text-align: center; margin: 20px 0;">0 / 0
+          </div>
+          <div class="muted" style="text-align: center;">Answers received</div>
+        </div>
+
+        <div class="leaderboard-container" style="margin-top: 0; width: 100%;">
+          <div class="leaderboard-header">
+            <h4 style="margin:0;">Live Leaderboard</h4>
+            <div class="leaderboard-controls">
+              <button id="freezeGameLbBtn" class="btn-small">Freeze</button>
+            </div>
+          </div>
+          <div id="gameLeaderboardList" class="leaderboard-list">
+            <!-- Rows injected by JS -->
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- 4. PODIUM VIEW -->
-  <div id="view-podium" class="game-view flex-center stack" style="height: 80vh;">
-    <h1 style="font-size: 4rem; margin-bottom: 60px;">🏆 CHAMPIONS 🏆</h1>
-    <div style="display: flex; align-items: flex-end; gap: 20px; height: 300px;">
-      <div id="podium-2" class="glass-card flex-center stack"
-        style="width: 200px; height: 60%; background: linear-gradient(to top, rgba(192,192,192,0.4), var(--glass));">
+  <div id="view-podium" class="game-view flex-center stack" style="height: 100vh; gap: 40px;">
+    <h1 class="animate-float"
+      style="font-size: 5rem; margin-bottom: 20px; text-shadow: 0 0 30px var(--accent-primary);">🏆 CHAMPIONS 🏆</h1>
+    <div style="display: flex; align-items: flex-end; gap: 30px; height: 350px;">
+      <div id="podium-2" class="glass-card flex-center stack podium-spot"
+        style="width: 200px; height: 65%; background: linear-gradient(to top, rgba(192,192,192,0.3), var(--glass));">
         <div class="name">--</div>
-        <div class="score" style="font-size: 1.2rem; color: var(--text-muted); margin-bottom: 10px;">0 pts</div>
-        <div style="font-size: 3rem; font-weight: 900;">2nd</div>
+        <div class="score" style="font-size: 1.2rem; color: var(--text-muted); margin-bottom: 15px;">0 pts</div>
+        <div style="font-size: 3rem; font-weight: 900; opacity: 0.5;">2nd</div>
       </div>
-      <div id="podium-1" class="glass-card flex-center stack"
-        style="width: 240px; height: 100%; background: linear-gradient(to top, rgba(255,215,0,0.4), var(--glass)); border: 2px solid var(--accent-warning);">
+      <div id="podium-1" class="glass-card flex-center stack podium-spot"
+        style="width: 250px; height: 100%; background: linear-gradient(to top, rgba(255,215,0,0.3), var(--glass));">
         <div class="name">--</div>
-        <div class="score" style="font-size: 1.5rem; color: var(--accent-warning); margin-bottom: 10px;">0 pts</div>
-        <div style="font-size: 4rem; font-weight: 900;">1st</div>
+        <div class="score" style="font-size: 1.5rem; color: var(--accent-warning); margin-bottom: 15px;">0 pts</div>
+        <div style="font-size: 4.5rem; font-weight: 900;">1st</div>
       </div>
-      <div id="podium-3" class="glass-card flex-center stack"
-        style="width: 200px; height: 40%; background: linear-gradient(to top, rgba(205,127,50,0.4), var(--glass));">
+      <div id="podium-3" class="glass-card flex-center stack podium-spot"
+        style="width: 200px; height: 50%; background: linear-gradient(to top, rgba(205,127,50,0.3), var(--glass));">
         <div class="name">--</div>
-        <div class="score" style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 10px;">0 pts</div>
-        <div style="font-size: 2rem; font-weight: 900;">3rd</div>
+        <div class="score" style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 15px;">0 pts</div>
+        <div style="font-size: 2.5rem; font-weight: 900; opacity: 0.5;">3rd</div>
       </div>
     </div>
-    <button onclick="location.reload()" class="btn-primary" style="margin-top: 60px;">New Game</button>
+    <button onclick="location.reload()" class="btn-primary"
+      style="margin-top: 20px; padding: 20px 60px; font-size: 1.2rem;">New Game</button>
   </div>
 
   <script type="module" src="host.js"></script>
