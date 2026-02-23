@@ -616,20 +616,41 @@
       if (audioCtx.state === 'suspended') audioCtx.resume();
     }
 
+    let unlockedLevel = parseInt(localStorage.getItem('clickMaster_unlockedLevel')) || 1;
+
+    function saveUnlockedLevel() {
+      localStorage.setItem('clickMaster_unlockedLevel', unlockedLevel);
+    }
+
     function populateGrid() {
       const g = document.getElementById('level-grid');
       g.innerHTML = "";
       for (let i = 1; i <= 20; i++) {
         const b = document.createElement('button');
+        const isLocked = i > unlockedLevel;
         const cfg = levelConfig[i];
-        let colorClass = 'bg-white/5 border-white/10 hover:border-sky-500';
-        if (i >= 15) colorClass = 'bg-rose-500/20 border-rose-500/30 hover:border-rose-500';
-        else if (i >= 10) colorClass = 'bg-violet-500/20 border-violet-500/30 hover:border-violet-500';
-        else if (i >= 6) colorClass = 'bg-indigo-500/20 border-indigo-500/30 hover:border-indigo-500';
 
-        b.className = `p-3 rounded ${colorClass} text-xs font-bold transition-all hover:scale-105`;
-        b.innerText = i;
-        b.onclick = () => startGame(i);
+        let colorClass = '';
+        if (isLocked) {
+          colorClass = 'bg-slate-900/50 border-white/5 text-slate-600 cursor-not-allowed';
+        } else {
+          colorClass = 'bg-white/5 border-white/10 hover:border-sky-500 text-white';
+          if (i >= 15) colorClass = 'bg-rose-500/20 border-rose-500/30 hover:border-rose-500 text-white';
+          else if (i >= 10) colorClass = 'bg-violet-500/20 border-violet-500/30 hover:border-violet-500 text-white';
+          else if (i >= 6) colorClass = 'bg-indigo-500/20 border-indigo-500/30 hover:border-indigo-500 text-white';
+        }
+
+        b.className = `p-3 rounded ${colorClass} text-xs font-bold transition-all ${isLocked ? '' : 'hover:scale-105'}`;
+
+        if (isLocked) {
+          b.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mx-auto opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>`;
+          b.disabled = true;
+        } else {
+          b.innerText = i;
+          b.onclick = () => startGame(i);
+        }
         g.appendChild(b);
       }
     }
@@ -823,6 +844,13 @@
     }
 
     function completeLevel() {
+      // Unlock next level
+      if (currentLevel === unlockedLevel && unlockedLevel < 20) {
+        unlockedLevel++;
+        saveUnlockedLevel();
+        populateGrid();
+      }
+
       if (currentLevel === 20) {
         gameActive = false;
         document.getElementById('progress-bar').style.width = "100%";
