@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virus Defence Simulator — Stay Calm Mode</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            10%,
+            30%,
+            50%,
+            70%,
+            90% {
+                transform: translate(-5px, 0);
+            }
+
+            20%,
+            40%,
+            60%,
+            80% {
+                transform: translate(5px, 0);
+            }
+        }
+
+        .screen-shake {
+            animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
+        }
+
+        .desktop-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e1b4b 100%);
+            background-size: cover;
+            overflow: hidden;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .taskbar {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(15px);
+        }
+
+        .popup-critical {
+            border: 3px solid #ef4444;
+            box-shadow: 0 0 50px rgba(239, 68, 68, 0.4);
+        }
+
+        #danger-meter {
+            transition: width 0.5s ease-in-out;
+        }
+
+        .terminal-text {
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+</head>
+
+<body class="bg-black text-white h-screen flex flex-col font-sans select-none">
+
+    <!-- Simulation Container -->
+    <div id="desktop" class="relative flex-1 desktop-bg flex flex-col items-center justify-center p-4">
+
+        <!-- Danger Meter UI -->
+        <div class="absolute top-4 right-4 w-64 glass rounded-lg p-3 z-50">
+            <div class="flex justify-between text-xs mb-1">
+                <span>SYSTEM STABILITY</span>
+                <span id="stability-text">100%</span>
+            </div>
+            <div class="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
+                <div id="stability-bar" class="bg-blue-400 h-full w-full"></div>
+            </div>
+        </div>
+
+        <!-- Mock Icons -->
+        <div class="absolute top-10 left-10 grid grid-flow-row gap-8 text-center opacity-60">
+            <div class="w-16 h-16 flex flex-col items-center cursor-default">
+                <div class="w-12 h-12 bg-blue-500 rounded flex items-center justify-center mb-1">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                    </svg>
+                </div>
+                <span class="text-[10px]">My Documents</span>
+            </div>
+            <div class="w-16 h-16 flex flex-col items-center cursor-default">
+                <div class="w-12 h-12 bg-green-500 rounded flex items-center justify-center mb-1">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                        </path>
+                    </svg>
+                </div>
+                <span class="text-[10px]">Budget.xlsx</span>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-overlay"
+            class="absolute inset-0 z-50 bg-black flex flex-center items-center justify-center p-6 text-center">
+            <div class="max-w-md">
+                <a href="build.html"
+                    class="inline-flex items-center gap-2 text-slate-400 hover:text-white transition group mb-8">
+                    <div
+                        class="w-8 h-8 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center group-hover:bg-slate-800 transition">
+                        <span class="text-xs">←</span>
+                    </div>
+                    <span class="text-xs font-bold uppercase tracking-wider">Back to Hub</span>
+                </a>
+                <h1 class="text-3xl font-bold mb-4">Virus Defence Simulator</h1>
+                <p class="text-gray-400 mb-6 italic text-sm">Target Audience: ICT Students / General Users</p>
+                <p class="mb-8">In this simulation, you are browsing the web. Something will happen. Your goal is to
+                    stay calm and make the right security decisions.</p>
+                <button onclick="startSimulation()"
+                    class="bg-blue-600 hover:bg-blue-700 px-10 py-3 rounded-full font-bold transition">START
+                    BROWSING</button>
+            </div>
+        </div>
+
+        <!-- Main Scaring Popup (Hidden Initially) -->
+        <div id="virus-popup"
+            class="hidden absolute glass popup-critical rounded-lg w-full max-w-md p-0 overflow-hidden z-40 transform scale-95 transition-all">
+            <div class="bg-red-600 p-2 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                        </path>
+                    </svg>
+                    <span class="font-bold text-sm tracking-tight">CRITICAL SECURITY ALERT</span>
+                </div>
+                <button class="hover:bg-red-500 rounded px-2">✕</button>
+            </div>
+            <div class="p-6 text-center">
+                <p class="text-red-400 font-bold text-xl mb-2">SYSTEM INFECTED!</p>
+                <p class="text-sm mb-6 text-gray-200">27 Trojan Viruses have been detected on your hard drive. Your
+                    banking info and personal files are at risk.</p>
+
+                <div
+                    class="bg-gray-900 rounded p-4 mb-6 terminal-text text-left text-xs leading-relaxed text-green-400">
+                    > Scanning C:/Users/Local/Files...<br>
+                    > Found: Win32.Malware.Agent<br>
+                    > Found: Trojan.Clicker.Generic<br>
+                    > STATUS: <span class="text-red-500 underline">CRITICAL DANGER</span>
+                </div>
+
+                <div class="grid grid-cols-1 gap-3">
+                    <button onclick="handleChoice('bad')"
+                        class="bg-red-600 hover:bg-red-700 p-3 rounded font-bold text-sm transition">DOWNLOAD SECURITY
+                        CLEANER (FREE)</button>
+                    <button onclick="handleChoice('neutral')"
+                        class="bg-gray-700 hover:bg-gray-600 p-3 rounded font-bold text-sm transition">CLOSE THIS
+                        POPUP</button>
+                    <button onclick="handleChoice('good')"
+                        class="bg-blue-600 hover:bg-blue-700 p-3 rounded font-bold text-sm transition">OPEN TRUSTED
+                        ANTIVIRUS APP</button>
+                    <button onclick="handleChoice('pro')"
+                        class="bg-gray-800 hover:bg-gray-700 p-3 rounded font-bold text-sm transition text-gray-400">RESTART
+                        SYSTEM</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scan Animation Overlay -->
+        <div id="scanner-ui"
+            class="hidden absolute inset-0 bg-blue-900 bg-opacity-90 z-50 flex flex-col items-center justify-center p-8 text-center">
+            <div class="w-32 h-32 border-8 border-blue-400 border-t-transparent rounded-full animate-spin mb-8"></div>
+            <h2 id="scanner-title" class="text-2xl font-bold mb-2 text-white">SYSTEM SCAN IN PROGRESS</h2>
+            <p id="scanner-subtitle" class="text-blue-200">Verifying system integrity...</p>
+        </div>
+
+        <!-- Conclusion Screen -->
+        <div id="result-screen" class="hidden absolute inset-0 bg-black z-[60] flex items-center justify-center p-6">
+            <div class="max-w-2xl glass p-8 rounded-2xl">
+                <h2 id="result-title" class="text-3xl font-bold mb-4">Simulation Complete</h2>
+                <div id="result-message" class="mb-6 space-y-4"></div>
+
+                <div class="bg-blue-900 bg-opacity-30 p-6 rounded-lg border border-blue-500 mb-8">
+                    <h3 class="font-bold text-blue-400 mb-2">Learning Output: Why do these exist?</h3>
+                    <ul class="text-sm list-disc list-inside space-y-2 text-gray-300">
+                        <li><strong>Scareware:</strong> These popups use urgency and fear to make you act without
+                            thinking.</li>
+                        <li><strong>The Goal:</strong> To get you to download real malware or pay for a fake service.
+                        </li>
+                        <li><strong>Safe Action:</strong> Never click buttons inside a popup. Close the browser tab or
+                            use your <em>own</em> pre-installed antivirus software.</li>
+                    </ul>
+                </div>
+
+                <button onclick="location.reload()" class="w-full bg-blue-600 py-3 rounded font-bold">RETRY
+                    SIMULATION</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Taskbar -->
+    <div class="taskbar h-12 flex items-center px-4 justify-between relative">
+        <div class="flex items-center gap-4">
+            <div class="w-8 h-8 bg-blue-500 rounded-sm flex items-center justify-center cursor-pointer">
+                <svg class="w-5 h-5" fill="white" viewBox="0 0 24 24">
+                    <path d="M0 0h11v11H0zM13 0h11v11H13zM0 13h11v24H0zM13 13h11v24H13z" />
+                </svg>
+            </div>
+            <div class="flex gap-1">
+                <div class="w-8 h-8 bg-gray-700 rounded-sm"></div>
+                <div id="antivirus-icon"
+                    class="w-8 h-8 bg-blue-600 rounded-sm flex items-center justify-center cursor-pointer border-b-2 border-white">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div class="text-xs text-gray-400">
+            <span id="system-clock">12:00 PM</span>
+        </div>
+    </div>
+
+    <script>
+        let stability = 100;
+        let choiceHistory = [];
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('system-clock').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function startSimulation() {
+            document.getElementById('start-overlay').classList.add('hidden');
+
+            // Trigger popup after a random delay
+            setTimeout(() => {
+                triggerInfection();
+            }, 2500);
+        }
+
+        function triggerInfection() {
+            const popup = document.getElementById('virus-popup');
+            const desktop = document.getElementById('desktop');
+
+            popup.classList.remove('hidden');
+            desktop.classList.add('screen-shake');
+
+            // Audio cue (simulated with visual intensity)
+            setTimeout(() => {
+                desktop.classList.remove('screen-shake');
+            }, 500);
+        }
+
+        function updateStability(val) {
+            stability = Math.max(0, Math.min(100, stability + val));
+            const bar = document.getElementById('stability-bar');
+            const text = document.getElementById('stability-text');
+
+            bar.style.width = stability + '%';
+            text.textContent = stability + '%';
+
+            if (stability < 40) bar.classList.replace('bg-blue-400', 'bg-red-500');
+            else if (stability < 70) bar.classList.replace('bg-blue-400', 'bg-yellow-500');
+        }
+
+        function handleChoice(type) {
+            document.getElementById('virus-popup').classList.add('hidden');
+            const scanner = document.getElementById('scanner-ui');
+
+            if (type === 'bad') {
+                updateStability(-60);
+                showScanner("INSTALLING 'SECURITY_CLEANER.EXE'...", "Extracting files to C:/Windows/System32...", 3000, () => {
+                    endSimulation(false, "You clicked the download button. In a real scenario, this would have installed actual malware that locks your files for ransom.");
+                });
+            } else if (type === 'neutral') {
+                updateStability(-10);
+                endSimulation(false, "You just closed the popup. While better than clicking 'Install', many fake popups have hidden buttons that trigger downloads anyway. The safest path is to ignore the popup and use a trusted scanner.");
+            } else if (type === 'good') {
+                updateStability(0);
+                showScanner("VERIFYING SYSTEM WITH DEFENDER PRO...", "Scanning for real threats... No threats found.", 4000, () => {
+                    endSimulation(true, "Great job! By opening your pre-installed, trusted antivirus software, you verified that the popup was a lie. You didn't give the scammers what they wanted.");
+                });
+            } else if (type === 'pro') {
+                showScanner("REBOOTING SYSTEM...", "Cleaning temporary cache...", 3000, () => {
+                    endSimulation(true, "Excellent. Restarting the system or closing the browser via Task Manager is the most effective way to kill a persistent fake alert without interacting with its malicious code.");
+                });
+            }
+        }
+
+        function showScanner(title, sub, duration, callback) {
+            const scanner = document.getElementById('scanner-ui');
+            document.getElementById('scanner-title').textContent = title;
+            document.getElementById('scanner-subtitle').textContent = sub;
+            scanner.classList.remove('hidden');
+
+            setTimeout(() => {
+                scanner.classList.add('hidden');
+                callback();
+            }, duration);
+        }
+
+        function endSimulation(success, message) {
+            const result = document.getElementById('result-screen');
+            const title = document.getElementById('result-title');
+            const msgContainer = document.getElementById('result-message');
+
+            result.classList.remove('hidden');
+            title.textContent = success ? "Success: System Safe!" : "System Compromised!";
+            title.className = success ? "text-3xl font-bold mb-4 text-green-400" : "text-3xl font-bold mb-4 text-red-500";
+
+            msgContainer.innerHTML = `<p class="text-lg">${message}</p>`;
+        }
+    </script>
+</body>
+
+</html>

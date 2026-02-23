@@ -1,4 +1,4 @@
-import { db, auth, ensureAnonAuth, TS, Fire, GameStatus, calculatePoints } from "./firebase.js";
+﻿import { db, auth, ensureAnonAuth, TS, Fire, GameStatus, calculatePoints } from "./firebase.js";
 const { doc, setDoc, getDocs, collection, query, orderBy, onSnapshot, updateDoc, writeBatch } = Fire;
 
 // Helper: strip markdown bold/italic markers from text
@@ -6,7 +6,7 @@ function cleanText(t) {
     return t ? t.replace(/\*\*/g, "").replace(/\*/g, "").replace(/^\d+[.):] ?/, "").trim() : "";
 }
 
-// ── State ──────────────────────────────────────────────────────────────────
+// â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let currentGameId = null;
 let currentQuiz = null;
 let players = {};
@@ -18,7 +18,7 @@ let lastRanks = {};
 let allQuizzes = []; // { id, title, questions }
 let selectedQuizId = null;
 
-// ── Audio ──────────────────────────────────────────────────────────────────
+// â”€â”€ Audio â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const sounds = {
     lobby: new Audio("waiting_sound.wav"),
     game: new Audio("quiz)background.mp3"),  // local bg during gameplay
@@ -38,7 +38,7 @@ function stopAllBg(keepGameMusic = false) {
     sounds.podium.pause();
 }
 
-// ── DOM ────────────────────────────────────────────────────────────────────
+// â”€â”€ DOM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const views = {
     setup: document.getElementById("view-setup"),
     lobby: document.getElementById("view-lobby"),
@@ -77,7 +77,7 @@ const importModeGuide = document.getElementById("importModeGuide");
 const manualQ = document.getElementById("manualQ");
 const manualOpts = document.querySelectorAll(".manual-opt");
 
-// ── Confetti ───────────────────────────────────────────────────────────────
+// â”€â”€ Confetti â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let confettiParticles = [];
 let confettiRAF = null;
 
@@ -138,7 +138,7 @@ function launchConfetti() {
     }, 8000);
 }
 
-// ── Quiz Search UI ─────────────────────────────────────────────────────────
+// â”€â”€ Quiz Search UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function renderQuizResults(filter = "") {
     const term = filter.toLowerCase().trim();
     const matches = term
@@ -192,7 +192,7 @@ document.addEventListener("click", (e) => {
 
 clearQuizBtn.addEventListener("click", clearSelection);
 
-// ── Leaderboard UI Helpers ─────────────────────────────────────────────────
+// â”€â”€ Leaderboard UI Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function toggleLbFreeze() {
     lbFrozen = !lbFrozen;
     const btns = [document.getElementById("freezeLbBtn"), document.getElementById("freezeGameLbBtn")];
@@ -264,7 +264,7 @@ function startLeaderboardListener() {
         // Update battle log if in lobby
         const logEl = document.getElementById("lobbyLog");
         if (logEl && views.lobby.style.display !== "none") {
-            logEl.innerHTML = lbData.map(p => `<div>⚔️ ${p.name} joined the battle</div>`).join("");
+            logEl.innerHTML = lbData.map(p => `<div>âš”ï¸ ${p.name} joined the battle</div>`).join("");
         }
     });
 
@@ -279,7 +279,7 @@ function startLeaderboardListener() {
     });
 }
 
-// ── Tab & Creation Logic ──────────────────────────────────────────────────
+// â”€â”€ Tab & Creation Logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 tabSelect.addEventListener("click", () => {
     tabSelect.classList.add("active");
     tabCreate.classList.remove("active");
@@ -306,7 +306,7 @@ creationModeSelect.addEventListener("change", () => {
     }
 });
 
-// ── Initialization ─────────────────────────────────────────────────────────
+// â”€â”€ Initialization â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function init() {
     await ensureAnonAuth();
     await loadQuizzes();
@@ -339,7 +339,7 @@ async function loadQuizzes() {
     });
 }
 
-// ── View Switching ─────────────────────────────────────────────────────────
+// â”€â”€ View Switching â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function showView(viewId) {
     Object.values(views).forEach(v => v.style.display = "none");
     views[viewId].style.display = (viewId === "setup" || viewId === "question") ? "flex" : "grid";
@@ -357,7 +357,7 @@ function showView(viewId) {
     }
 }
 
-// ── 1. Setup Phase ─────────────────────────────────────────────────────────
+// â”€â”€ 1. Setup Phase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 createBtn.addEventListener("click", async () => {
     let quizIdToStart = selectedQuizId;
 
@@ -417,12 +417,12 @@ createBtn.addEventListener("click", async () => {
 
 startBtn.addEventListener("click", () => {
     if (Object.keys(players).length === 0) return alert("Wait for players!");
-    // Start bg music here — inside a user gesture so autoplay is allowed
+    // Start bg music here â€” inside a user gesture so autoplay is allowed
     sounds.game.play().catch(() => { });
     goToNextQuestion();
 });
 
-// ── 3. Question Phase ──────────────────────────────────────────────────────
+// â”€â”€ 3. Question Phase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function goToNextQuestion() {
     const nextIndex = (currentQuiz.currentQIndex ?? -1) + 1;
     currentQuiz.currentQIndex = nextIndex;
@@ -548,7 +548,7 @@ nextBtn.addEventListener("click", () => {
     goToNextQuestion();
 });
 
-// ── 4. Podium Phase ────────────────────────────────────────────────────────
+// â”€â”€ 4. Podium Phase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function showPodium() {
     await updateDoc(doc(db, "games", currentGameId), { status: GameStatus.FINISHED });
 

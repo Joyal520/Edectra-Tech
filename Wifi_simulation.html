@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi Rescue — Network Engineer Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow: hidden;
+        }
+
+        .crt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .status-led {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .led-green {
+            background-color: #22c55e;
+            box-shadow: 0 0 8px #22c55e;
+        }
+
+        .led-red {
+            background-color: #ef4444;
+            box-shadow: 0 0 8px #ef4444;
+        }
+
+        .led-off {
+            background-color: #334155;
+            box-shadow: none;
+        }
+
+        .led-blink {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        .desktop-bg {
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+        }
+
+        .window-shadow {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+        }
+
+        .scanline {
+            width: 100%;
+            height: 100px;
+            z-index: 51;
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(0, 0, 0, 0) 100%);
+            opacity: 0.1;
+            position: absolute;
+            bottom: 100%;
+            animation: scanline 10s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% {
+                bottom: 100%;
+            }
+
+            100% {
+                bottom: -100px;
+            }
+        }
+    </style>
+</head>
+
+<body class="h-screen w-screen flex flex-col items-center justify-center p-4">
+    <div class="crt-overlay"></div>
+    <div class="scanline"></div>
+
+    <div class="fixed top-6 left-6 z-[60]">
+        <a href="build.html" class="flex items-center gap-2 text-slate-500 hover:text-white transition group">
+            <div
+                class="w-10 h-10 rounded-full bg-slate-900/80 backdrop-blur border border-slate-700 flex items-center justify-center group-hover:bg-slate-800 transition">
+                <span class="text-sm">←</span>
+            </div>
+            <span class="text-xs font-bold uppercase tracking-widest">Back to Hub</span>
+        </a>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="w-full max-w-6xl h-full flex flex-col lg:flex-row gap-6">
+
+        <!-- Left Column: The Device (OS Interface) -->
+        <div class="flex-1 flex flex-col gap-4">
+            <div
+                class="bg-slate-800/50 border border-slate-700 rounded-xl flex-1 flex flex-col relative desktop-bg overflow-hidden window-shadow">
+                <!-- Top Bar -->
+                <div class="h-10 bg-slate-900/80 border-b border-slate-700 flex items-center justify-between px-4">
+                    <div class="flex gap-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                    </div>
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Network_OS v4.2</div>
+                    <div id="os-clock" class="text-xs text-slate-400 font-mono">12:00 PM</div>
+                </div>
+
+                <!-- Desktop Content -->
+                <div class="p-6 flex-1 flex flex-col items-center justify-center relative">
+                    <!-- Dynamic Browser/Status View -->
+                    <div id="browser-view"
+                        class="w-full max-w-md bg-white text-slate-900 rounded-lg p-8 shadow-2xl transition-all duration-500 transform scale-100">
+                        <div class="flex flex-col items-center text-center">
+                            <div id="connection-icon" class="text-64 mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" class="text-red-500">
+                                    <path d="M12 20h.01" />
+                                    <path d="M8.5 16.429a5 5 0 0 1 7 0" />
+                                    <path d="M5 12.859a10 10 0 0 1 14 0" />
+                                    <path d="M1.5 9.29a15 15 0 0 1 21 0" />
+                                    <line x1="2" y1="2" x2="22" y2="22" />
+                                </svg>
+                            </div>
+                            <h2 id="connection-title" class="text-2xl font-extrabold mb-2">No Internet Connection</h2>
+                            <p id="connection-desc" class="text-slate-500 mb-6">Your computer is not connected to the
+                                gateway. Please check your hardware or network settings.</p>
+                            <button onclick="toggleWindow('settings')"
+                                class="px-6 py-2 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition">Open
+                                Network Settings</button>
+                        </div>
+                    </div>
+
+                    <!-- Settings Window (Hidden by Default) -->
+                    <div id="settings-window" class="absolute inset-0 bg-slate-100 text-slate-900 hidden flex flex-col">
+                        <div class="bg-slate-200 p-3 flex justify-between items-center border-b border-slate-300">
+                            <span class="font-bold flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2">
+                                    <path
+                                        d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                                System Settings
+                            </span>
+                            <button onclick="toggleWindow('settings')" class="text-slate-500 hover:text-red-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="flex-1 flex overflow-hidden">
+                            <div class="w-1/3 bg-slate-50 border-r border-slate-200 p-4 flex flex-col gap-2">
+                                <button class="text-left px-3 py-2 rounded bg-blue-100 text-blue-700 font-medium">Wi-Fi
+                                    & Internet</button>
+                                <button
+                                    class="text-left px-3 py-2 rounded text-slate-600 hover:bg-slate-200">Bluetooth</button>
+                                <button
+                                    class="text-left px-3 py-2 rounded text-slate-600 hover:bg-slate-200">Display</button>
+                                <button
+                                    class="text-left px-3 py-2 rounded text-slate-600 hover:bg-slate-200">Security</button>
+                            </div>
+                            <div class="flex-1 p-6 flex flex-col gap-6 overflow-y-auto">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h3 class="font-bold">Enable Wi-Fi Adapter</h3>
+                                        <p class="text-xs text-slate-500">Enable or disable your network hardware.</p>
+                                    </div>
+                                    <button id="btn-adapter" onclick="toggleSetting('adapter')"
+                                        class="w-12 h-6 rounded-full bg-slate-300 relative transition-colors duration-200">
+                                        <div
+                                            class="absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform translate-x-0">
+                                        </div>
+                                    </button>
+                                </div>
+                                <hr>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h3 class="font-bold">Airplane Mode</h3>
+                                        <p class="text-xs text-slate-500">Disable all radio communication.</p>
+                                    </div>
+                                    <button id="btn-airplane" onclick="toggleSetting('airplane')"
+                                        class="w-12 h-6 rounded-full bg-slate-300 relative transition-colors duration-200">
+                                        <div
+                                            class="absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform translate-x-0">
+                                        </div>
+                                    </button>
+                                </div>
+                                <hr>
+                                <div>
+                                    <h3 class="font-bold mb-4">Available Networks</h3>
+                                    <div id="network-list" class="space-y-2">
+                                        <!-- Networks populated by JS -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Taskbar -->
+                <div class="h-12 bg-slate-900/90 border-t border-slate-700 flex items-center px-4 justify-between">
+                    <div class="flex gap-4">
+                        <button onclick="toggleWindow('settings')" class="p-1 hover:bg-slate-700 rounded transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="#94a3b8" stroke-width="2">
+                                <path
+                                    d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        </button>
+                        <button class="p-1 hover:bg-slate-700 rounded transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="#94a3b8" stroke-width="2">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                                <line x1="8" y1="21" x2="16" y2="21" />
+                                <line x1="12" y1="17" x2="12" y2="21" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div id="taskbar-wifi" class="text-slate-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 20h.01" />
+                                <path d="M8.5 16.429a5 5 0 0 1 7 0" />
+                                <path d="M5 12.859a10 10 0 0 1 14 0" />
+                                <path d="M1.5 9.29a15 15 0 0 1 21 0" />
+                                <line x1="2" y1="2" x2="22" y2="22" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terminal / Activity Log -->
+            <div
+                class="h-32 bg-black/80 border border-slate-700 rounded-lg p-3 font-mono text-[10px] text-green-400 overflow-y-auto window-shadow">
+                <div id="log-content">
+                    > SYSTEM_BOOT_SEQUENCE: OK<br>
+                    > NETWORK_CARD: DETECTED<br>
+                    > INITIALIZING TROUBLESHOOTING SIMULATION...<br>
+                    > ERROR: PACKET LOSS 100%<br>
+                    > ADVICE: CHECK ALL PHYSICAL AND LOGICAL PATHS.
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Physical Environment -->
+        <div class="w-full lg:w-80 flex flex-col gap-4">
+            <!-- Router Physical -->
+            <div class="bg-slate-800 border border-slate-600 rounded-xl p-6 window-shadow">
+                <h3 class="text-xs font-bold text-slate-400 uppercase mb-4 tracking-tighter">Hardware: Router AX-500
+                </h3>
+                <div class="relative bg-slate-900 rounded-lg p-4 border-2 border-slate-700">
+                    <!-- Router Front -->
+                    <div class="flex justify-around mb-6">
+                        <div class="flex flex-col items-center">
+                            <div id="led-pwr" class="status-led led-off"></div>
+                            <span class="text-[8px] mt-1 text-slate-500">PWR</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div id="led-wifi" class="status-led led-off"></div>
+                            <span class="text-[8px] mt-1 text-slate-500">WIFI</span>
+                        </div>
+                        <div id="led-int-container" class="flex flex-col items-center">
+                            <div id="led-int" class="status-led led-off"></div>
+                            <span class="text-[8px] mt-1 text-slate-500">INT</span>
+                        </div>
+                    </div>
+                    <!-- Router Rear View Link -->
+                    <div class="flex flex-col gap-2">
+                        <button onclick="toggleRouterAction('power')" id="btn-power-toggle"
+                            class="w-full py-2 bg-slate-700 hover:bg-slate-600 text-[10px] rounded border border-slate-500 transition">Press
+                            Power Button</button>
+                        <button onclick="toggleRouterAction('reset')"
+                            class="w-full py-2 bg-red-900/30 hover:bg-red-800/50 text-red-400 text-[10px] rounded border border-red-900/50 transition">Hold
+                            Reset (10s)</button>
+                        <div class="mt-2 p-2 bg-black/40 rounded border border-slate-700">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[9px] text-slate-400">Power Cable:</span>
+                                <button onclick="toggleRouterAction('cable')" id="cable-status"
+                                    class="text-[9px] text-red-500 underline">UNPLUGGED</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 text-[10px] text-slate-400 italic">
+                    Note: A real engineer checks the physical layer (cables/power) before digging into IP
+                    configurations.
+                </div>
+            </div>
+
+            <!-- Stats / Progress -->
+            <div class="bg-slate-800 border border-slate-600 rounded-xl p-4 flex-1 window-shadow flex flex-col">
+                <h3 class="text-xs font-bold text-slate-400 uppercase mb-3">Engineer Stats</h3>
+                <div class="space-y-3 flex-1">
+                    <div>
+                        <div class="flex justify-between text-[10px] mb-1">
+                            <span>Diagnostic Progress</span>
+                            <span id="progress-val">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                            <div id="progress-bar" class="bg-blue-500 h-full transition-all duration-500"
+                                style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900/50 p-3 rounded border border-slate-700">
+                        <div class="text-[10px] text-slate-500 mb-1">Current Task:</div>
+                        <div id="current-hint" class="text-xs text-blue-300">Investigate why there's no internet access.
+                        </div>
+                    </div>
+                </div>
+                <button onclick="resetSim()"
+                    class="mt-4 w-full py-2 bg-slate-700 hover:bg-slate-600 text-xs rounded transition uppercase font-bold tracking-widest">Restart
+                    Simulation</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-container" class="fixed inset-0 bg-black/80 z-[100] hidden items-center justify-center p-4">
+        <!-- Success Modal -->
+        <div id="success-modal"
+            class="bg-slate-800 border-2 border-green-500 p-8 rounded-2xl max-w-md w-full text-center hidden">
+            <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+                    stroke="white" stroke-width="4">
+                    <polyline points="20 6 9 17 4 12" />
+                </svg>
+            </div>
+            <h2 class="text-3xl font-black mb-2">NETWORK RESTORED</h2>
+            <p class="text-slate-400 mb-6">You've successfully diagnosed and repaired the network failure.</p>
+            <div class="bg-black/30 p-4 rounded-lg text-left mb-6 font-mono text-xs">
+                <div class="text-green-400 mb-2 underline">Troubleshooting Summary:</div>
+                <ul id="summary-list" class="space-y-1 list-disc list-inside text-slate-300">
+                    <!-- Summary here -->
+                </ul>
+            </div>
+            <button onclick="resetSim()"
+                class="w-full py-4 bg-green-600 hover:bg-green-700 rounded-xl font-bold transition">START NEW
+                CHALLENGE</button>
+        </div>
+    </div>
+
+    <!-- Password Prompt -->
+    <div id="password-modal" class="fixed inset-0 z-[110] hidden items-center justify-center pointer-events-none">
+        <div class="bg-white text-slate-900 p-6 rounded-lg shadow-2xl w-80 pointer-events-auto border border-slate-300">
+            <h3 class="font-bold mb-1">Enter Password</h3>
+            <p class="text-xs text-slate-500 mb-4" id="pass-network-name">Connecting to Network...</p>
+            <input type="password" id="pass-input"
+                class="w-full p-2 border border-slate-300 rounded mb-4 focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder="••••••••">
+            <div class="flex gap-2">
+                <button onclick="closePassword()"
+                    class="flex-1 py-2 text-slate-500 hover:bg-slate-100 rounded">Cancel</button>
+                <button onclick="submitPassword()"
+                    class="flex-1 py-2 bg-blue-600 text-white rounded font-bold">Connect</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State Constants
+        const NETWORKS = [
+            { id: 'home', name: 'Home_WiFi_AX', secure: true, correctPass: 'admin123' },
+            { id: 'neighbor', name: 'Neighbor_Net', secure: true, correctPass: 'wrongpass' },
+            { id: 'guest', name: 'Guest_Public', secure: false, correctPass: '' }
+        ];
+
+        // Global Simulation State
+        let state = {
+            failures: [], // Randomly chosen list of issues
+            actionsTaken: [], // Log of what user did
+            computer: {
+                adapterOn: true,
+                airplaneMode: false,
+                connectedTo: null,
+                isWrongPassAttempted: false
+            },
+            router: {
+                pluggedIn: false,
+                poweredOn: false,
+                isResetting: false,
+                uptime: 0
+            },
+            isResolved: false
+        };
+
+        const logs = document.getElementById('log-content');
+        const summaryList = document.getElementById('summary-list');
+
+        // Initialization
+        function initSimulation() {
+            // Randomly pick 2-3 failures
+            const possibleFailures = [
+                'CABLE_UNPLUGGED',
+                'ROUTER_OFF',
+                'ADAPTER_OFF',
+                'AIRPLANE_MODE',
+                'WRONG_PASSWORD_REQUIRED',
+                'NETWORK_DISABLED'
+            ];
+
+            // Scramble
+            state.failures = possibleFailures.sort(() => 0.5 - Math.random()).slice(0, 3);
+
+            // Set initial hardware based on failures
+            state.router.pluggedIn = !state.failures.includes('CABLE_UNPLUGGED');
+            state.router.poweredOn = !state.failures.includes('ROUTER_OFF');
+            state.computer.adapterOn = !state.failures.includes('ADAPTER_OFF');
+            state.computer.airplaneMode = state.failures.includes('AIRPLANE_MODE');
+
+            // If network disabled, we won't connect initially
+            state.computer.connectedTo = state.failures.includes('NETWORK_DISABLED') ? null : NETWORKS[0].id;
+
+            updateUI();
+            addLog("Simulation Started. Diagnostic tools ready.");
+        }
+
+        function updateUI() {
+            // Clock
+            document.getElementById('os-clock').innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            // Router LEDs
+            const ledPwr = document.getElementById('led-pwr');
+            const ledWifi = document.getElementById('led-wifi');
+            const ledInt = document.getElementById('led-int');
+
+            if (state.router.pluggedIn && state.router.poweredOn) {
+                ledPwr.className = 'status-led led-green';
+                ledWifi.className = 'status-led led-green led-blink';
+                ledInt.className = 'status-led led-green';
+            } else if (state.router.pluggedIn && !state.router.poweredOn) {
+                ledPwr.className = 'status-led led-red';
+                ledWifi.className = 'status-led led-off';
+                ledInt.className = 'status-led led-off';
+            } else {
+                ledPwr.className = 'status-led led-off';
+                ledWifi.className = 'status-led led-off';
+                ledInt.className = 'status-led led-off';
+            }
+
+            // Router Controls
+            document.getElementById('cable-status').innerText = state.router.pluggedIn ? 'PLUGGED' : 'UNPLUGGED';
+            document.getElementById('cable-status').className = state.router.pluggedIn ? 'text-[9px] text-green-500 underline' : 'text-[9px] text-red-500 underline';
+            document.getElementById('btn-power-toggle').innerText = state.router.poweredOn ? 'Power Off' : 'Power On';
+
+            // Computer Settings
+            const adaptBtn = document.getElementById('btn-adapter');
+            adaptBtn.className = `w-12 h-6 rounded-full relative transition-colors duration-200 ${state.computer.adapterOn ? 'bg-blue-600' : 'bg-slate-300'}`;
+            adaptBtn.children[0].className = `absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${state.computer.adapterOn ? 'translate-x-6' : 'translate-x-0'}`;
+
+            const airBtn = document.getElementById('btn-airplane');
+            airBtn.className = `w-12 h-6 rounded-full relative transition-colors duration-200 ${state.computer.airplaneMode ? 'bg-orange-500' : 'bg-slate-300'}`;
+            airBtn.children[0].className = `absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${state.computer.airplaneMode ? 'translate-x-6' : 'translate-x-0'}`;
+
+            // Network List
+            const list = document.getElementById('network-list');
+            list.innerHTML = '';
+
+            if (state.computer.adapterOn && !state.computer.airplaneMode) {
+                NETWORKS.forEach(net => {
+                    const isConnected = state.computer.connectedTo === net.id;
+                    const div = document.createElement('div');
+                    div.className = `flex items-center justify-between p-2 rounded border ${isConnected ? 'bg-blue-50 border-blue-200' : 'hover:bg-slate-50 border-slate-200'}`;
+                    div.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+                            <span class="text-sm ${isConnected ? 'font-bold' : ''}">${net.name}</span>
+                        </div>
+                        ${isConnected ? '<span class="text-[10px] text-blue-600 font-bold uppercase">Connected</span>' :
+                            `<button onclick="connectTo('${net.id}')" class="text-[10px] px-3 py-1 bg-slate-200 rounded hover:bg-slate-300 transition">Connect</button>`}
+                    `;
+                    list.appendChild(div);
+                });
+            } else {
+                list.innerHTML = '<div class="text-slate-400 text-xs text-center py-4">Wi-Fi is turned off.</div>';
+            }
+
+            // Connection Logic Check
+            checkConnectivity();
+            updateProgress();
+        }
+
+        function checkConnectivity() {
+            const browserView = document.getElementById('browser-view');
+            const icon = document.getElementById('connection-icon');
+            const title = document.getElementById('connection-title');
+            const desc = document.getElementById('connection-desc');
+            const taskbarWifi = document.getElementById('taskbar-wifi');
+
+            let isInternetOn = false;
+            let failureReason = "";
+
+            if (!state.router.pluggedIn) {
+                failureReason = "Router has no power source.";
+            } else if (!state.router.poweredOn) {
+                failureReason = "Router is turned off.";
+            } else if (!state.computer.adapterOn) {
+                failureReason = "Computer WiFi adapter is disabled.";
+            } else if (state.computer.airplaneMode) {
+                failureReason = "Airplane mode is blocking signals.";
+            } else if (!state.computer.connectedTo) {
+                failureReason = "Not connected to any network.";
+            } else if (state.computer.connectedTo !== 'home') {
+                failureReason = "Connected to incorrect/unauthorized network.";
+            } else {
+                isInternetOn = true;
+            }
+
+            if (isInternetOn) {
+                icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/><path d="M5 12.859a10 10 0 0 1 14 0"/><path d="M1.5 9.29a15 15 0 0 1 21 0"/></svg>';
+                title.innerText = "Internet Restored";
+                title.className = "text-2xl font-extrabold mb-2 text-green-600";
+                desc.innerText = "Connection stable. All systems operational.";
+                taskbarWifi.className = "text-green-500";
+                taskbarWifi.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>';
+
+                if (!state.isResolved) {
+                    state.isResolved = true;
+                    showSuccess();
+                }
+            } else {
+                icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/><path d="M5 12.859a10 10 0 0 1 14 0"/><path d="M1.5 9.29a15 15 0 0 1 21 0"/><line x1="2" y1="2" x2="22" y2="22"/></svg>';
+                title.innerText = "No Internet Connection";
+                title.className = "text-2xl font-extrabold mb-2 text-red-600";
+                desc.innerText = failureReason;
+                taskbarWifi.className = "text-slate-500";
+                taskbarWifi.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h.01"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/><path d="M5 12.859a10 10 0 0 1 14 0"/><path d="M1.5 9.29a15 15 0 0 1 21 0"/><line x1="2" y1="2" x2="22" y2="22"/></svg>';
+            }
+        }
+
+        function updateProgress() {
+            let solvedCount = 0;
+            // Logical check of what "bad" things are fixed
+            if (state.router.pluggedIn) solvedCount++;
+            if (state.router.poweredOn) solvedCount++;
+            if (state.computer.adapterOn) solvedCount++;
+            if (!state.computer.airplaneMode) solvedCount++;
+            if (state.computer.connectedTo === 'home') solvedCount++;
+
+            const totalFactors = 5;
+            const percentage = Math.floor((solvedCount / totalFactors) * 100);
+            document.getElementById('progress-val').innerText = percentage + '%';
+            document.getElementById('progress-bar').style.width = percentage + '%';
+
+            // Update Hint
+            const hintEl = document.getElementById('current-hint');
+            if (!state.router.pluggedIn) hintEl.innerText = "The router lights are completely dark. Is it getting power?";
+            else if (!state.router.poweredOn) hintEl.innerText = "The router is plugged in but the Power LED is red.";
+            else if (!state.computer.adapterOn) hintEl.innerText = "The router looks fine, but the PC isn't scanning for networks.";
+            else if (state.computer.airplaneMode) hintEl.innerText = "Hardware is fine, check software radio settings.";
+            else if (state.computer.connectedTo !== 'home') hintEl.innerText = "The PC is connected to the wrong network or none at all.";
+            else hintEl.innerText = "Diagnostics passing. Finalizing connection...";
+        }
+
+        // Interaction Handlers
+        function toggleWindow(win) {
+            const el = document.getElementById('settings-window');
+            el.classList.toggle('hidden');
+        }
+
+        function toggleSetting(type) {
+            if (type === 'adapter') {
+                state.computer.adapterOn = !state.computer.adapterOn;
+                addLog(`Wi-Fi Adapter ${state.computer.adapterOn ? 'Enabled' : 'Disabled'}`);
+                if (!state.computer.adapterOn) state.computer.connectedTo = null;
+                recordAction(`Toggled Adapter: ${state.computer.adapterOn}`);
+            } else if (type === 'airplane') {
+                state.computer.airplaneMode = !state.computer.airplaneMode;
+                addLog(`Airplane Mode ${state.computer.airplaneMode ? 'ON' : 'OFF'}`);
+                if (state.computer.airplaneMode) state.computer.connectedTo = null;
+                recordAction(`Toggled Airplane Mode: ${state.computer.airplaneMode}`);
+            }
+            updateUI();
+        }
+
+        function toggleRouterAction(type) {
+            if (type === 'cable') {
+                state.router.pluggedIn = !state.router.pluggedIn;
+                addLog(`Router Power Cable ${state.router.pluggedIn ? 'Plugged In' : 'Removed'}`);
+                if (!state.router.pluggedIn) state.router.poweredOn = false;
+                recordAction(`Hardware: Cable ${state.router.pluggedIn ? 'Connected' : 'Disconnected'}`);
+            } else if (type === 'power') {
+                if (!state.router.pluggedIn) {
+                    addLog("Error: Power button pressed but no power source detected.");
+                } else {
+                    state.router.poweredOn = !state.router.poweredOn;
+                    addLog(`Router Power Button: ${state.router.poweredOn ? 'ON' : 'OFF'}`);
+                }
+                recordAction(`Hardware: Power Button Toggled`);
+            } else if (type === 'reset') {
+                addLog("System: Router reset initiated. Restoring factory defaults...");
+                // Reset could fix internal state if we had one, but here it's just flavor
+                setTimeout(() => addLog("System: Router rebooted successfully."), 2000);
+                recordAction(`Hardware: Factory Reset Performed`);
+            }
+            updateUI();
+        }
+
+        let pendingNetId = null;
+        function connectTo(id) {
+            const net = NETWORKS.find(n => n.id === id);
+            if (net.secure) {
+                pendingNetId = id;
+                document.getElementById('pass-network-name').innerText = `Enter password for "${net.name}"`;
+                document.getElementById('password-modal').classList.remove('hidden');
+                document.getElementById('pass-input').focus();
+            } else {
+                state.computer.connectedTo = id;
+                addLog(`Connected to Open Network: ${net.name}`);
+                recordAction(`Connected to ${net.name}`);
+                updateUI();
+            }
+        }
+
+        function submitPassword() {
+            const val = document.getElementById('pass-input').value;
+            const net = NETWORKS.find(n => n.id === pendingNetId);
+
+            if (val === net.correctPass) {
+                state.computer.connectedTo = pendingNetId;
+                addLog(`Success: Authenticated with ${net.name}`);
+                recordAction(`Authenticated ${net.name} successfully`);
+                closePassword();
+                updateUI();
+            } else {
+                addLog(`Error: Invalid Password for ${net.name}`);
+                recordAction(`Failed Password Attempt on ${net.name}`);
+                document.getElementById('pass-input').value = '';
+                // Shake effect logic here if desired
+            }
+        }
+
+        function closePassword() {
+            document.getElementById('password-modal').classList.add('hidden');
+            document.getElementById('pass-input').value = '';
+            pendingNetId = null;
+        }
+
+        function addLog(msg) {
+            const div = document.createElement('div');
+            div.innerHTML = `> ${msg}`;
+            logs.appendChild(div);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function recordAction(action) {
+            state.actionsTaken.push({
+                time: new Date().toLocaleTimeString(),
+                action: action
+            });
+        }
+
+        function showSuccess() {
+            document.getElementById('modal-container').classList.remove('hidden');
+            document.getElementById('modal-container').classList.add('flex');
+            document.getElementById('success-modal').classList.remove('hidden');
+
+            summaryList.innerHTML = '';
+            state.actionsTaken.forEach(a => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span class="text-slate-500">[${a.time}]</span> ${a.action}`;
+                summaryList.appendChild(li);
+            });
+        }
+
+        function resetSim() {
+            state = {
+                failures: [],
+                actionsTaken: [],
+                computer: {
+                    adapterOn: true,
+                    airplaneMode: false,
+                    connectedTo: null
+                },
+                router: {
+                    pluggedIn: false,
+                    poweredOn: false,
+                    isResetting: false
+                },
+                isResolved: false
+            };
+
+            document.getElementById('modal-container').classList.add('hidden');
+            document.getElementById('modal-container').classList.remove('flex');
+            document.getElementById('success-modal').classList.add('hidden');
+            document.getElementById('settings-window').classList.add('hidden');
+            logs.innerHTML = '';
+
+            initSimulation();
+        }
+
+        // Start
+        window.onload = initSimulation;
+    </script>
+</body>
+
+</html>

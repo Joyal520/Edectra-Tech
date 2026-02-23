@@ -1,10 +1,10 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ElectraTech Live Quiz — Host Dashboard</title>
+  <title>ElectraTech Live Quiz â€” Host Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap"
@@ -129,7 +129,7 @@
       font-weight: 600;
     }
 
-    /* Question title — responsive font size (mobile → projector) */
+    /* Question title â€” responsive font size (mobile â†’ projector) */
 #qTitle {
   font-size: clamp(1.6rem, 2.2vw + 1rem, 3.2rem);
   line-height: 1.2;
@@ -226,7 +226,7 @@
 
       <!-- Import Mode AI Guide -->
       <div id="importModeGuide" class="ai-guide" style="display: none;">
-        <p>💡 <b>Pro Tip:</b> Use AI to generate quizzes in Edectra format.</p>
+        <p>ðŸ’¡ <b>Pro Tip:</b> Use AI to generate quizzes in Edectra format.</p>
         <p>Paste this prompt into ChatGPT/Gemini:</p>
         <code>Create a 10-question quiz about [Topic] in this format:
 TITLE: Quiz Title
@@ -236,7 +236,7 @@ A: Option 2*
 A: Option 3
 A: Option 4</code>
         <a href="import.html" style="color: var(--accent-secondary); font-weight: 800; text-decoration: none;">Open
-          Importer to Paste Code →</a>
+          Importer to Paste Code â†’</a>
       </div>
     </div>
 
@@ -244,9 +244,9 @@ A: Option 4</code>
 
     <!-- Common settings -->
     <div id="selectedQuizBadge" class="selected-quiz-badge" style="width:100%;">
-      <span>✅</span>
+      <span>âœ…</span>
       <span id="selectedQuizTitle">No quiz selected</span>
-      <button class="clear-btn" id="clearQuizBtn" title="Clear selection">✕</button>
+      <button class="clear-btn" id="clearQuizBtn" title="Clear selection">âœ•</button>
     </div>
 
     <select id="modeSelect" class="modern-input" style="margin-bottom: 24px; width: 100%;">
@@ -335,7 +335,7 @@ A: Option 4</code>
   <!-- 4. PODIUM VIEW -->
   <div id="view-podium" class="game-view flex-center stack" style="height: 100vh; gap: 40px;">
     <h1 class="animate-float"
-      style="font-size: 5rem; margin-bottom: 20px; text-shadow: 0 0 30px var(--accent-primary);">🏆 CHAMPIONS 🏆</h1>
+      style="font-size: 5rem; margin-bottom: 20px; text-shadow: 0 0 30px var(--accent-primary);">ðŸ† CHAMPIONS ðŸ†</h1>
     <div style="display: flex; align-items: flex-end; gap: 30px; height: 350px;">
       <div id="podium-2" class="glass-card flex-center stack podium-spot"
         style="width: 200px; height: 65%; background: linear-gradient(to top, rgba(192,192,192,0.3), var(--glass));">
@@ -363,4 +363,3 @@ A: Option 4</code>
   <script type="module" src="host.js"></script>
 </body>
 
-</html>

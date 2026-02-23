@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virus Attack Simulator</title>
+    <!-- Load React and Babel for local execution -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @keyframes pulse-red {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .animate-pulse-slow {
+            animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 font-sans">
+    <div class="p-4 flex">
+        <a href="build.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition group">
+            <div
+                class="w-8 h-8 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center group-hover:bg-slate-800 transition">
+                <span class="text-xs">←</span>
+            </div>
+            <span class="text-xs font-bold uppercase tracking-wider">Back to Hub</span>
+        </a>
+    </div>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Simple wrapper for Lucide icons
+        const Icon = ({ name, size = 24, className = "" }) => {
+            const iconRef = useRef(null);
+
+            useEffect(() => {
+                if (window.lucide && iconRef.current) {
+                    window.lucide.createIcons({
+                        icons: { [name]: window.lucide.icons[name] },
+                        nameAttr: 'data-lucide'
+                    });
+                }
+            }, [name]);
+
+            return (
+                <i
+                    ref={iconRef}
+                    data-lucide={name}
+                    style={{ width: size, height: size }}
+                    className={`inline-block ${className}`}
+                ></i>
+            );
+        };
+
+        const App = () => {
+            const [stage, setStage] = useState('idle');
+            const [malwareType, setMalwareType] = useState('virus');
+            const [securityEnabled, setSecurityEnabled] = useState(false);
+            const [logs, setLogs] = useState([{ time: new Date().toLocaleTimeString(), msg: "System initialized. Waiting for user action." }]);
+            const [files, setFiles] = useState(Array.from({ length: 12 }, (_, i) => ({ id: i, infected: false, encrypted: false })));
+            const [networkNodes, setNetworkNodes] = useState(Array.from({ length: 5 }, (_, i) => ({ id: i, status: 'clean' })));
+            const [showExplanation, setShowExplanation] = useState(true);
+            const [muted, setMuted] = useState(false);
+
+            const timerRef = useRef(null);
+            const audioCtx = useRef(null);
+
+            const playSound = (type) => {
+                if (muted) return;
+                if (!audioCtx.current) {
+                    audioCtx.current = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                const osc = audioCtx.current.createOscillator();
+                const gain = audioCtx.current.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.current.destination);
+                const now = audioCtx.current.currentTime;
+
+                switch (type) {
+                    case 'infection':
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(150, now);
+                        osc.frequency.exponentialRampToValueAtTime(40, now + 0.5);
+                        gain.gain.setValueAtTime(0.2, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                        osc.start(now);
+                        osc.stop(now + 0.5);
+                        break;
+                    case 'dormant':
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(220, now);
+                        gain.gain.setValueAtTime(0.05, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                        osc.start(now);
+                        osc.stop(now + 0.1);
+                        break;
+                    case 'propagate':
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(440, now);
+                        osc.frequency.linearRampToValueAtTime(880, now + 0.1);
+                        gain.gain.setValueAtTime(0.03, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                        osc.start(now);
+                        osc.stop(now + 0.1);
+                        break;
+                    case 'alert':
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(880, now);
+                        osc.frequency.exponentialRampToValueAtTime(440, now + 0.3);
+                        gain.gain.setValueAtTime(0.1, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                        osc.start(now);
+                        osc.stop(now + 0.3);
+                        break;
+                    case 'denied':
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(100, now);
+                        gain.gain.setValueAtTime(0.1, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                        osc.start(now);
+                        osc.stop(now + 0.2);
+                        break;
+                }
+            };
+
+            const addLog = (msg) => {
+                setLogs(prev => [{ time: new Date().toLocaleTimeString(), msg }, ...prev].slice(0, 10));
+            };
+
+            const resetSimulation = () => {
+                setStage('idle');
+                setFiles(files.map(f => ({ ...f, infected: false, encrypted: false })));
+                setNetworkNodes(networkNodes.map(n => ({ ...n, status: 'clean' })));
+                setLogs([{ time: new Date().toLocaleTimeString(), msg: "Simulation reset. System clean." }]);
+                if (timerRef.current) clearTimeout(timerRef.current);
+                playSound('infection');
+            };
+
+            const startInfection = () => {
+                if (securityEnabled) {
+                    addLog("⚠️ Security Shield blocked the suspicious download!");
+                    playSound('denied');
+                    return;
+                }
+                setStage('infection');
+                playSound('infection');
+                addLog(`🚀 Attack initiated: User clicked on a malicious attachment (${malwareType}).`);
+                timerRef.current = setTimeout(() => {
+                    setStage('dormant');
+                    playSound('dormant');
+                    addLog("💤 Stage 1: Dormant. The code has injected itself into 'System32' and is waiting for a trigger.");
+                }, 2000);
+            };
+
+            const triggerMalware = () => {
+                setStage('propagation');
+                playSound('alert');
+                addLog("⚡ Stage 2: Triggered! System events detected. Starting self-replication.");
+                const interval = setInterval(() => {
+                    setFiles(prev => {
+                        const next = [...prev];
+                        const uninfected = next.filter(f => !f.infected);
+                        if (uninfected.length > 0) {
+                            const target = uninfected[Math.floor(Math.random() * uninfected.length)];
+                            target.infected = true;
+                            playSound('propagate');
+                            addLog(`📂 Infecting: file_${target.id}.exe`);
+                            return next;
+                        } else {
+                            clearInterval(interval);
+                            setStage('payload');
+                            playSound('alert');
+                            addLog("💀 Final Stage: Payload Execution. Performing malicious intent.");
+                            return next;
+                        }
+                    });
+                    if (malwareType === 'worm') {
+                        setNetworkNodes(prev => {
+                            const next = [...prev];
+                            const clean = next.filter(n => n.status === 'clean');
+                            if (clean.length > 0) {
+                                clean[0].status = 'infected';
+                                addLog(`🌐 Worm spreading to Node ${clean[0].id}...`);
+                            }
+                            return next;
+                        });
+                    }
+                }, 800);
+            };
+
+            useEffect(() => {
+                if (stage === 'payload') {
+                    const alarmInterval = setInterval(() => playSound('alert'), 2000);
+                    if (malwareType === 'ransomware') {
+                        const encryptTimer = setTimeout(() => {
+                            setFiles(prev => prev.map(f => ({ ...f, encrypted: true })));
+                            addLog("🔒 RANSOMWARE: All user files have been encrypted.");
+                        }, 1000);
+                        return () => { clearTimeout(encryptTimer); clearInterval(alarmInterval); };
+                    }
+                    return () => clearInterval(alarmInterval);
+                }
+            }, [stage, malwareType]);
+
+            return (
+                <div className="min-h-screen p-4 md:p-8">
+                    <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Control Panel */}
+                        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-2">
+                                    <Icon name="Shield" className="text-blue-400" />
+                                    <h1 className="text-xl font-bold">Attack Controller</h1>
+                                </div>
+                                <button onClick={() => setMuted(!muted)} className="p-2 hover:bg-slate-800 rounded-lg text-slate-400">
+                                    <Icon name={muted ? "VolumeX" : "Volume2"} size={20} />
+                                </button>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-400 mb-2">Malware Variant</label>
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {['virus', 'worm', 'ransomware'].map(id => (
+                                            <button key={id} onClick={() => { setMalwareType(id); playSound('dormant'); }} disabled={stage !== 'idle'}
+                                                className={`text-left p-3 rounded-lg border transition-all ${malwareType === id ? 'border-blue-500 bg-blue-500/10' : 'border-slate-700 bg-slate-800 hover:bg-slate-750'} disabled:opacity-50`}>
+                                                <div className="font-bold text-sm capitalize">{id}</div>
+                                                <div className="text-xs text-slate-400">{id === 'virus' ? 'Infects local files.' : id === 'worm' ? 'Spreads across network.' : 'Encrypts everything.'}</div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between p-3 bg-slate-800 rounded-lg border border-slate-700">
+                                    <div className="flex items-center gap-2">
+                                        <Icon name={securityEnabled ? "ShieldCheck" : "ShieldAlert"} className={securityEnabled ? "text-green-400" : "text-red-400"} size={18} />
+                                        <span className="text-sm font-medium">Antivirus Shield</span>
+                                    </div>
+                                    <button onClick={() => { setSecurityEnabled(!securityEnabled); playSound(securityEnabled ? 'denied' : 'propagate'); }}
+                                        className={`w-12 h-6 rounded-full transition-colors relative ${securityEnabled ? 'bg-green-500' : 'bg-slate-600'}`}>
+                                        <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${securityEnabled ? 'translate-x-6' : ''}`} />
+                                    </button>
+                                </div>
+
+                                <div className="pt-4 border-t border-slate-800 flex flex-col gap-2">
+                                    {stage === 'idle' ? (
+                                        <button onClick={startInfection} className="w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors">
+                                            <Icon name="Play" size={18} /> Launch Exploit
+                                        </button>
+                                    ) : stage === 'dormant' ? (
+                                        <button onClick={triggerMalware} className="w-full bg-yellow-600 hover:bg-yellow-700 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors">
+                                            <Icon name="Zap" size={18} /> Trigger Payload
+                                        </button>
+                                    ) : (
+                                        <button onClick={resetSimulation} className="w-full bg-slate-700 hover:bg-slate-600 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors">
+                                            <Icon name="RotateCcw" size={18} /> Clean System
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Visualization Section */}
+                        <div className="lg:col-span-2 space-y-6">
+                            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <Icon name="Monitor" size={20} className="text-slate-400" />
+                                    <div>
+                                        <div className="text-xs text-slate-500 uppercase font-bold tracking-wider">System Status</div>
+                                        <div className={`text-sm font-mono font-bold ${stage === 'payload' ? 'text-red-500 animate-pulse' : stage === 'idle' ? 'text-green-400' : 'text-yellow-400'}`}>
+                                            {stage === 'idle' && "OS SECURE - NO THREATS"}
+                                            {stage === 'infection' && "SYSTEM ALERT: UNKNOWN BINARY DETECTED"}
+                                            {stage === 'dormant' && "WARNING: DORMANT THREAT FOUND IN MEMORY"}
+                                            {stage === 'propagation' && "CRITICAL: REPLICATION IN PROGRESS"}
+                                            {stage === 'payload' && "SYSTEM COMPROMISED - PAYLOAD ACTIVE"}
+                                        </div>
+                                    </div>
+                                </div>
+                                {stage === 'payload' && <Icon name="Skull" className="text-red-500 animate-bounce" />}
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                                    <h2 className="text-sm font-bold text-slate-400 flex items-center gap-2 mb-4"><Icon name="HardDrive" size={16} /> File System</h2>
+                                    <div className="grid grid-cols-4 gap-3">
+                                        {files.map(f => (
+                                            <div key={f.id} className="flex flex-col items-center">
+                                                <div className={`p-2 rounded-md transition-all duration-500 ${f.encrypted ? 'bg-red-900 shadow-[0_0_10px_rgba(255,0,0,0.5)]' : f.infected ? 'bg-yellow-900/50 scale-105' : 'bg-slate-800'}`}>
+                                                    <Icon name={f.encrypted ? "Lock" : "FileText"} size={20} className={f.encrypted ? "text-red-400" : f.infected ? "text-yellow-500" : "text-slate-500"} />
+                                                </div>
+                                                <span className="text-[10px] mt-1 text-slate-500">file_{f.id}.exe</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="space-y-6">
+                                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                                        <h2 className="text-sm font-bold text-slate-400 flex items-center gap-2 mb-4"><Icon name="Network" size={16} /> Local Network</h2>
+                                        <div className="flex justify-between items-center px-4 relative">
+                                            <div className="absolute h-0.5 bg-slate-800 w-full left-0 z-0"></div>
+                                            {networkNodes.map(n => (
+                                                <div key={n.id} className="relative z-10 flex flex-col items-center">
+                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${n.status === 'infected' ? 'border-red-500 bg-red-900 animate-pulse' : 'border-slate-700 bg-slate-800'}`}>
+                                                        <Icon name="Monitor" size={14} className={n.status === 'infected' ? 'text-white' : 'text-slate-500'} />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                                        <h2 className="text-sm font-bold text-slate-400 flex items-center gap-2 mb-2"><Icon name="Cpu" size={16} /> Memory (RAM)</h2>
+                                        <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                                            <div className={`h-full transition-all duration-1000 ${stage === 'payload' ? 'bg-red-600 w-full' : stage === 'propagation' ? 'bg-yellow-500 w-2/3' : 'bg-green-500 w-[8%]'}`} />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-black border border-slate-800 rounded-xl p-4 font-mono text-xs h-32 overflow-y-auto">
+                                {logs.map((log, i) => (
+                                    <div key={i} className={i === 0 ? 'text-blue-300' : 'text-slate-500'}>
+                                        <span className="opacity-50">[{log.time}]</span> {log.msg}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {showExplanation && (
+                        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4 text-center">
+                            <div className="bg-slate-900 border border-slate-700 rounded-2xl p-8 max-w-xl">
+                                <Icon name="Shield" className="text-blue-400 mx-auto mb-6" size={48} />
+                                <h2 className="text-2xl font-bold mb-4">Virus Attack Simulator</h2>
+                                <p className="text-slate-300 mb-8 text-left">This tool demonstrates the lifecycle of malware. Save this as an .html file to run it locally. Click the button below to start.</p>
+                                <button onClick={() => { setShowExplanation(false); if (!audioCtx.current) audioCtx.current = new (window.AudioContext || window.webkitAudioContext)(); }}
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all">
+                                    Start System
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>
