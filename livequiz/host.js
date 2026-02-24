@@ -18,6 +18,9 @@ let lastRanks = {};
 let allQuizzes = []; // { id, title, questions }
 let selectedQuizId = null;
 
+let isRevealing = false;
+let answersUnsub = null;
+
 // â”€â”€ Audio â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const sounds = {
     lobby: new Audio("waiting_sound.wav"),
@@ -424,6 +427,14 @@ startBtn.addEventListener("click", () => {
 
 // â”€â”€ 3. Question Phase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function goToNextQuestion() {
+    isRevealing = false;
+    if (timerInterval) clearInterval(timerInterval);
+    if (answersUnsub) {
+        answersUnsub();
+        answersUnsub = null;
+    }
+    clearTimeout(window._autoAdvanceTimer);
+
     const nextIndex = (currentQuiz.currentQIndex ?? -1) + 1;
     currentQuiz.currentQIndex = nextIndex;
 
@@ -481,24 +492,33 @@ function startTimer(sec) {
         if (left <= 5 && left > 0) sounds.tick.play().catch(() => { });
         if (left <= 0) {
             clearInterval(timerInterval);
-            revealAnswer();
+            if (!isRevealing) revealAnswer();
         }
     }, 1000);
 }
 
 function listenToAnswers(qIndex) {
     const answersRef = collection(db, "games", currentGameId, "answers");
-    onSnapshot(answersRef, (snap) => {
-        const count = snap.docs.filter(d => d.id.endsWith(`_${qIndex}`)).length;
-        answerStats.textContent = `${count} / ${Object.keys(players).length} Answered`;
-        if (count >= Object.keys(players).length && count > 0) {
-            clearInterval(timerInterval);
-            revealAnswer();
+    const q = Fire.query(answersRef, Fire.where("qIndex", "==", qIndex));
+    answersUnsub = onSnapshot(q, (snap) => {
+        const count = snap.size;
+        const total = Object.keys(players).length;
+        answerStats.textContent = `${count} / ${total} Answered`;
+        if (count >= total && total > 0) {
+            if (!isRevealing) revealAnswer();
         }
     });
 }
 
 async function revealAnswer() {
+    if (isRevealing) return;
+    isRevealing = true;
+    if (timerInterval) clearInterval(timerInterval);
+    if (answersUnsub) {
+        answersUnsub();
+        answersUnsub = null;
+    }
+
     sounds.correct.play().catch(() => { });
     const qIndex = currentQuiz.currentQIndex;
     const q = currentQuiz.questions[qIndex];
