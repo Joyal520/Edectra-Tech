@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Live Typing Competition — Host Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .host-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 24px;
+        }
+
+        .pin-display {
+            font-size: 100px;
+            font-weight: 900;
+            color: var(--accent-secondary);
+            text-shadow: var(--shadow-glow);
+            margin: 10px 0;
+            letter-spacing: 8px;
+        }
+
+        .passage-preview {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            font-family: monospace;
+            font-size: 14px;
+            color: var(--text-muted);
+            max-height: 150px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .stats-table th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid var(--glass-border);
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stats-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .flag-warning {
+            color: var(--accent-error);
+            font-weight: 800;
+        }
+
+        .game-view {
+            display: none;
+        }
+
+        .timer-display {
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--accent-warning);
+        }
+    </style>
+</head>
+
+<body style="padding: 24px;">
+    <div class="aurora"></div>
+    <div class="bg-overlay"></div>
+
+    <!-- 1. SETUP VIEW -->
+    <div id="view-setup" class="glass-card stack"
+        style="max-width: 700px; margin: 60px auto; padding: 32px; text-align: center;">
+        <h1>Host Typing Competition</h1>
+        <p style="color: var(--text-muted); margin-bottom: 24px;">Set the stage for a high-speed typing battle.</p>
+
+        <div class="stack" style="gap: 16px; text-align: left;">
+            <label style="font-weight: 600;">Competition Passage</label>
+            <textarea id="passageInput" class="modern-input" style="height: 150px;"
+                placeholder="Paste the text students should type..."></textarea>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="stack" style="gap: 8px;">
+                    <label style="font-weight: 600;">Duration (Seconds)</label>
+                    <input id="durationInput" type="number" class="modern-input" value="60" min="10" max="360">
+                </div>
+                <div class="stack" style="gap: 8px;">
+                    <label style="font-weight: 600;">Presets</label>
+                    <select id="presetSelect" class="modern-input">
+                        <option value="">Custom...</option>
+                        <option value="The quick brown fox jumps over the lazy dog.">Fox Jumps (Easy)</option>
+                        <option
+                            value="Technology is the application of conceptual knowledge for achieving practical goals, especially in a reproducible way.">
+                            Tech Definition (Medium)</option>
+                        <option
+                            value="In the beginning God created the heaven and the earth. And the earth was without form, and void; and darkness was upon the face of the deep.">
+                            Genesis (Hard)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <button id="createBtn" class="btn-primary" style="width: 100%; margin-top: 32px;">Initialize
+            Competition</button>
+    </div>
+
+    <!-- 2. LOBBY VIEW -->
+    <div id="view-lobby" class="game-view host-grid">
+        <div class="glass-card" style="padding: 40px; text-align: center;">
+            <h2 style="margin: 0; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px;">Join with
+                PIN:</h2>
+            <div id="lobbyPin" class="pin-display animate-pulse">------</div>
+            <p style="margin-bottom: 20px;">Or share: <br> <code id="shareLink"
+                    style="color: var(--accent-secondary);">type.html?sid=...</code></p>
+
+            <div class="leaderboard-container" style="max-width: 100%;">
+                <h3 id="playerCount">0 Players Joined</h3>
+                <div id="lobbyPlayerList"
+                    style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 10px;">
+                    <!-- Player names -->
+                </div>
+            </div>
+
+            <div class="btn-group" style="margin-top: 40px;">
+                <button id="startBtn" class="btn-primary" style="flex: 1;">Start Competition</button>
+            </div>
+        </div>
+        <div class="glass-card" style="padding: 24px;">
+            <h3>Passage Info</h3>
+            <div id="lobbyPassagePreview" class="passage-preview"></div>
+            <div style="margin-top: 16px; font-size: 14px; color: var(--text-muted);">
+                <p>Chars: <span id="charCount">0</span></p>
+                <p>Duration: <span id="durationDisplay">0</span>s</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. RUNNING VIEW -->
+    <div id="view-running" class="game-view stack" style="gap: 24px;">
+        <div class="glass-card"
+            style="padding: 24px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h2>Competition in Progress</h2>
+                <div id="passageRunning" class="passage-preview" style="max-height: 80px; width: 600px;"></div>
+            </div>
+            <div class="timer-display" id="gameTimer">--</div>
+        </div>
+
+        <div class="glass-card" style="padding: 24px;">
+            <div class="leaderboard-header">
+                <h3>Live Leaderboard</h3>
+                <span id="liveStatus" style="color: var(--accent-success); font-size: 12px; font-weight: 800;">● LIVE
+                    SCORING</span>
+            </div>
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>WPM</th>
+                        <th>Accuracy</th>
+                        <th>Score</th>
+                        <th>Flags</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                    <!-- Rows will be injected by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 4. FINISHED VIEW -->
+    <div id="view-finished" class="game-view flex-center stack" style="height: 100vh; gap: 40px;">
+        <h1 style="font-size: 4rem;">Results</h1>
+        <div class="glass-card" style="padding: 32px; width: 100%; max-width: 800px;">
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Name</th>
+                        <th>WPM</th>
+                        <th>Accuracy</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody id="finalResultsBody">
+                    <!-- Final Rows -->
+                </tbody>
+            </table>
+        </div>
+        <button onclick="location.reload()" class="btn-primary">Back to Hub</button>
+    </div>
+
+    <script type="module" src="host-typing.js"></script>
+</body>
+
+</html>

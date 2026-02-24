@@ -52,7 +52,15 @@ joinBtn.addEventListener("click", async () => {
     const user = await ensureAnonAuth();
 
     const pinSnap = await getDoc(doc(db, "pins", pin));
-    if (!pinSnap.exists()) return (joinStatus.textContent = "PIN not found!");
+    if (!pinSnap.exists()) {
+        // Try typing pins
+        const typingSnap = await getDoc(doc(db, "typingPins", pin));
+        if (typingSnap.exists()) {
+            window.location.href = `type.html?sid=${typingSnap.data().sid}`;
+            return;
+        }
+        return (joinStatus.textContent = "PIN not found!");
+    }
 
     currentGameId = pinSnap.data().gameId;
     profile.name = name;
