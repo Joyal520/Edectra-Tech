@@ -1,12 +1,12 @@
 ﻿import { db, auth, ensureAnonAuth, TS, Fire, GameStatus, calculatePoints } from "./firebase.js";
-const { doc, setDoc, getDocs, collection, query, orderBy, onSnapshot, updateDoc, writeBatch } = Fire;
+const { doc, setDoc, getDocs, collection, query, orderBy, onSnapshot, updateDoc, writeBatch, deleteDoc } = Fire;
 
 // Helper: strip markdown bold/italic markers from text
 function cleanText(t) {
     return t ? t.replace(/\*\*/g, "").replace(/\*/g, "").replace(/^\d+[.):] ?/, "").trim() : "";
 }
 
-// â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- State ---------------------------------------------------------------------
 let currentGameId = null;
 let currentQuiz = null;
 let players = {};
@@ -21,7 +21,7 @@ let selectedQuizId = null;
 let isRevealing = false;
 let answersUnsub = null;
 
-// â”€â”€ Audio â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Audio ---------------------------------------------------------------------
 const sounds = {
     lobby: new Audio("waiting_sound.wav"),
     game: new Audio("quiz)background.mp3"),  // local bg during gameplay
@@ -41,7 +41,7 @@ function stopAllBg(keepGameMusic = false) {
     sounds.podium.pause();
 }
 
-// â”€â”€ DOM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- DOM -----------------------------------------------------------------------
 const views = {
     setup: document.getElementById("view-setup"),
     lobby: document.getElementById("view-lobby"),
@@ -80,7 +80,7 @@ const importModeGuide = document.getElementById("importModeGuide");
 const manualQ = document.getElementById("manualQ");
 const manualOpts = document.querySelectorAll(".manual-opt");
 
-// â”€â”€ Confetti â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Confetti -------------------------------------------------------------------
 let confettiParticles = [];
 let confettiRAF = null;
 
@@ -141,7 +141,7 @@ function launchConfetti() {
     }, 8000);
 }
 
-// â”€â”€ Quiz Search UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Quiz Search UI ------------------------------------------------------------
 function renderQuizResults(filter = "") {
     const term = filter.toLowerCase().trim();
     const matches = term
@@ -155,9 +155,31 @@ function renderQuizResults(filter = "") {
         matches.forEach(q => {
             const div = document.createElement("div");
             div.className = "quiz-result-item";
-            div.innerHTML = `<div style="font-weight:700">${q.title}</div>
-                <div class="quiz-q-count">${q.questions.length} question${q.questions.length !== 1 ? "s" : ""}</div>`;
-            div.addEventListener("click", () => selectQuiz(q));
+            div.style.display = "flex";
+            div.style.justifyContent = "space-between";
+            div.style.alignItems = "center";
+            div.innerHTML = `
+                <div>
+                    <div style="font-weight:700">${q.title}</div>
+                    <div class="quiz-q-count">${q.questions.length} question${q.questions.length !== 1 ? "s" : ""}</div>
+                </div>
+                <button class="btn-small delete-quiz-btn" style="background:rgba(239, 68, 68, 0.2); border:1px solid rgba(239, 68, 68, 0.5); padding: 4px 8px;" title="Delete Quiz">Delete</button>
+            `;
+            // Click on item selects quiz (unless clicking delete)
+            div.addEventListener("click", (e) => {
+                if (!e.target.classList.contains("delete-quiz-btn")) {
+                    selectQuiz(q);
+                }
+            });
+            // Click delete button
+            div.querySelector(".delete-quiz-btn").addEventListener("click", async (e) => {
+                e.stopPropagation();
+                if (confirm(`Are you sure you want to delete "${q.title}"?`)) {
+                    await deleteDoc(doc(db, "quizzes", q.id));
+                    await loadQuizzes();
+                    renderQuizResults(quizSearchInput.value);
+                }
+            });
             quizResults.appendChild(div);
         });
     }
@@ -195,7 +217,7 @@ document.addEventListener("click", (e) => {
 
 clearQuizBtn.addEventListener("click", clearSelection);
 
-// â”€â”€ Leaderboard UI Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Leaderboard UI Helpers ----------------------------------------------------
 function toggleLbFreeze() {
     lbFrozen = !lbFrozen;
     const btns = [document.getElementById("freezeLbBtn"), document.getElementById("freezeGameLbBtn")];
@@ -267,7 +289,7 @@ function startLeaderboardListener() {
         // Update battle log if in lobby
         const logEl = document.getElementById("lobbyLog");
         if (logEl && views.lobby.style.display !== "none") {
-            logEl.innerHTML = lbData.map(p => `<div>âš”ï¸ ${p.name} joined the battle</div>`).join("");
+            logEl.innerHTML = lbData.map(p => `<div>⚔️ ${p.name} joined the battle</div>`).join("");
         }
     });
 
@@ -282,7 +304,7 @@ function startLeaderboardListener() {
     });
 }
 
-// â”€â”€ Tab & Creation Logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Tab & Creation Logic ------------------------------------------------------
 tabSelect.addEventListener("click", () => {
     tabSelect.classList.add("active");
     tabCreate.classList.remove("active");
@@ -309,7 +331,7 @@ creationModeSelect.addEventListener("change", () => {
     }
 });
 
-// â”€â”€ Initialization â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Initialization ------------------------------------------------------------
 async function init() {
     await ensureAnonAuth();
     await loadQuizzes();
@@ -342,7 +364,7 @@ async function loadQuizzes() {
     });
 }
 
-// â”€â”€ View Switching â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- View Switching ------------------------------------------------------------
 function showView(viewId) {
     Object.values(views).forEach(v => v.style.display = "none");
     views[viewId].style.display = (viewId === "setup" || viewId === "question") ? "flex" : "grid";
@@ -360,7 +382,7 @@ function showView(viewId) {
     }
 }
 
-// â”€â”€ 1. Setup Phase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- 1. Setup Phase ------------------------------------------------------------
 createBtn.addEventListener("click", async () => {
     let quizIdToStart = selectedQuizId;
 
@@ -425,7 +447,7 @@ startBtn.addEventListener("click", () => {
     goToNextQuestion();
 });
 
-// â”€â”€ 3. Question Phase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- 3. Question Phase ----------------------------------------------------------
 async function goToNextQuestion() {
     isRevealing = false;
     if (timerInterval) clearInterval(timerInterval);
@@ -451,8 +473,10 @@ async function goToNextQuestion() {
     qCounter.textContent = `Question ${nextIndex + 1} of ${currentQuiz.questions.length}`;
 
     let duration = 20;
-    if (modeSelect?.value === "speed" || currentQuiz.gameMode === "speed") duration = 10;
-    if (modeSelect?.value === "survival" || currentQuiz.gameMode === "survival") duration = 60;
+    const mode = modeSelect?.value || currentQuiz.gameMode;
+    if (mode === "speed") duration = 10;
+    if (mode === "normal") duration = 30;
+    if (mode === "survival") duration = 60;
 
     await updateDoc(doc(db, "games", currentGameId), {
         status: GameStatus.QUESTION,
@@ -568,7 +592,7 @@ nextBtn.addEventListener("click", () => {
     goToNextQuestion();
 });
 
-// â”€â”€ 4. Podium Phase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- 4. Podium Phase ------------------------------------------------------------
 async function showPodium() {
     await updateDoc(doc(db, "games", currentGameId), { status: GameStatus.FINISHED });
 
