@@ -96,10 +96,21 @@ function listenToSession() {
         }
 
         if (status === 'running') {
-            const elapsed = Math.floor((Date.now() - data.startMs) / 1000);
-            const remaining = Math.max(0, data.durationSec - elapsed);
-            timerDisplay.textContent = `Timer: ${remaining}s`;
-            if (remaining <= 0) finishGame();
+            if (!window._studentTimerInterval) {
+                window._studentTimerInterval = setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - data.startMs) / 1000);
+                    const remaining = Math.max(0, data.durationSec - elapsed);
+                    timerDisplay.textContent = `Timer: ${remaining}s`;
+                    if (remaining <= 0) {
+                        clearInterval(window._studentTimerInterval);
+                        window._studentTimerInterval = null;
+                        finishGame();
+                    }
+                }, 1000);
+            }
+        } else if (window._studentTimerInterval) {
+            clearInterval(window._studentTimerInterval);
+            window._studentTimerInterval = null;
         }
     });
 

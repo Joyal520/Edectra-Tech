@@ -18,6 +18,34 @@
             gap: 24px;
         }
 
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            display: none;
+        }
+
+        .podium-spot {
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: translateY(100px);
+            opacity: 0;
+            position: relative;
+        }
+
+        .podium-spot.reveal {
+            transform: translateY(0);
+            opacity: 1 !important;
+        }
+
+        #podium-1.reveal {
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.4);
+            border: 4px solid var(--accent-warning);
+        }
+
         .pin-display {
             font-size: 100px;
             font-weight: 900;
@@ -81,6 +109,7 @@
 <body style="padding: 24px;">
     <div class="aurora"></div>
     <div class="bg-overlay"></div>
+    <canvas id="confetti-canvas"></canvas>
 
     <!-- 1. SETUP VIEW -->
     <div id="view-setup" class="glass-card stack"
@@ -183,26 +212,41 @@
         </div>
     </div>
 
-    <!-- 4. FINISHED VIEW -->
-    <div id="view-finished" class="game-view flex-center stack" style="height: 100vh; gap: 40px;">
-        <h1 style="font-size: 4rem;">Results</h1>
-        <div class="glass-card" style="padding: 32px; width: 100%; max-width: 800px;">
-            <table class="stats-table">
-                <thead>
-                    <tr>
-                        <th>Rank</th>
-                        <th>Name</th>
-                        <th>WPM</th>
-                        <th>Accuracy</th>
-                        <th>Score</th>
-                    </tr>
-                </thead>
-                <tbody id="finalResultsBody">
-                    <!-- Final Rows -->
-                </tbody>
-            </table>
+    <!-- 4. FINISHED VIEW (PODIUM) -->
+    <div id="view-finished" class="game-view flex-center stack"
+        style="height: 100vh; gap: 40px; background: radial-gradient(circle at center, rgba(109, 94, 252, 0.2) 0%, transparent 70%);">
+        <h1 class="animate-float" style="font-size: 5rem; text-shadow: 0 0 30px var(--accent-primary);">
+            &#127942; CHAMPIONS &#127942;
+        </h1>
+
+        <div style="display: flex; align-items: flex-end; gap: 30px; height: 350px;">
+            <div id="podium-2" class="glass-card flex-center stack podium-spot"
+                style="width: 200px; height: 65%; background: linear-gradient(to top, rgba(192,192,192,0.3), var(--glass));">
+                <div class="name" style="font-weight: 800; font-size: 1.5rem;">--</div>
+                <div class="score" style="font-size: 1.2rem; color: var(--text-muted); margin-bottom: 15px;">0 pts
+                </div>
+                <div style="font-size: 3rem; font-weight: 900; opacity: 0.5;">2nd</div>
+            </div>
+
+            <div id="podium-1" class="glass-card flex-center stack podium-spot"
+                style="width: 250px; height: 100%; background: linear-gradient(to top, rgba(255,215,0,0.3), var(--glass));">
+                <div class="name" style="font-weight: 800; font-size: 2rem; color: var(--accent-warning);">--</div>
+                <div class="score" style="font-size: 1.5rem; color: var(--accent-warning); margin-bottom: 15px;">0
+                    pts</div>
+                <div style="font-size: 4.5rem; font-weight: 900;">1st</div>
+            </div>
+
+            <div id="podium-3" class="glass-card flex-center stack podium-spot"
+                style="width: 200px; height: 50%; background: linear-gradient(to top, rgba(205,127,50,0.3), var(--glass));">
+                <div class="name" style="font-weight: 800; font-size: 1.5rem;">--</div>
+                <div class="score" style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 15px;">0 pts
+                </div>
+                <div style="font-size: 2.5rem; font-weight: 900; opacity: 0.5;">3rd</div>
+            </div>
         </div>
-        <button onclick="location.reload()" class="btn-primary">Back to Hub</button>
+
+        <button onclick="location.reload()" class="btn-primary" style="margin-top: 20px; padding: 20px 60px;">Back to
+            Hub</button>
     </div>
 
     <script type="module" src="host-typing.js"></script>

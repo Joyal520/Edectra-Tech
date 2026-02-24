@@ -34,7 +34,81 @@ const leaderboardBody = document.getElementById("leaderboardBody");
 const finalResultsBody = document.getElementById("finalResultsBody");
 const passageRunning = document.getElementById("passageRunning");
 
-// Initialize
+// -- Audio ---------------------------------------------------------------------
+const sounds = {
+    lobby: new Audio("waiting_sound.wav"),
+    game: new Audio("quiz)background.mp3"),
+    correct: new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"),
+    podium: new Audio("https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"),
+    cheer: new Audio("popper.mp3")
+};
+sounds.lobby.loop = true;
+sounds.game.loop = true;
+
+function stopAllBg() {
+    sounds.lobby.pause(); sounds.lobby.currentTime = 0;
+    sounds.game.pause(); sounds.game.currentTime = 0;
+    sounds.podium.pause();
+}
+
+// -- Confetti -------------------------------------------------------------------
+const confettiCanvas = document.getElementById("confetti-canvas");
+let confettiParticles = [];
+let confettiRAF = null;
+
+function launchConfetti() {
+    confettiCanvas.style.display = "block";
+    const ctx = confettiCanvas.getContext("2d");
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+
+    const COLORS = ["#facc15", "#6366f1", "#ec4899", "#10b981", "#f97316", "#38bdf8", "#a78bfa"];
+    confettiParticles = Array.from({ length: 180 }, () => ({
+        x: Math.random() * confettiCanvas.width,
+        y: Math.random() * -confettiCanvas.height,
+        r: Math.random() * 10 + 5,
+        d: Math.random() * 180,
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        tilt: Math.random() * 10 - 10,
+        tiltAngle: 0,
+        tiltIncrement: Math.random() * 0.07 + 0.05,
+        fall: Math.random() * 4 + 2
+    }));
+
+    sounds.cheer.currentTime = 0;
+    sounds.cheer.play().catch(() => { });
+
+    function drawConfetti() {
+        ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        confettiParticles.forEach(p => {
+            ctx.beginPath();
+            ctx.save();
+            ctx.translate(p.x + p.r, p.y + p.r);
+            ctx.rotate(p.tiltAngle);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r);
+            ctx.restore();
+
+            p.tiltAngle += p.tiltIncrement;
+            p.y += p.fall;
+
+            if (p.y > confettiCanvas.height) {
+                p.y = -20;
+                p.x = Math.random() * confettiCanvas.width;
+            }
+        });
+        confettiRAF = requestAnimationFrame(drawConfetti);
+    }
+    confettiRAF = requestAnimationFrame(drawConfetti);
+
+    setTimeout(() => {
+        cancelAnimationFrame(confettiRAF);
+        ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        confettiCanvas.style.display = "none";
+    }, 8000);
+}
+
+// -- Initialization ------------------------------------------------------------
 async function init() {
     await ensureAnonAuth();
     if (window.lucide) window.lucide.createIcons();
@@ -86,6 +160,11 @@ function showView(viewName) {
     Object.keys(views).forEach(k => views[k].style.display = 'none');
     views[viewName].style.display = viewName === 'running' ? 'flex' : 'block';
     if (viewName === 'finished') views.finished.style.display = 'flex';
+
+    if (viewName === 'lobby') {
+        stopAllBg();
+        sounds.lobby.play().catch(() => { });
+    }
 }
 
 function listenToPlayers() {
@@ -128,6 +207,8 @@ startBtn.addEventListener("click", async () => {
     });
 
     showView('running');
+    stopAllBg();
+    sounds.game.play().catch(() => { });
     startTimers();
 });
 
@@ -208,6 +289,7 @@ function updateLeaderboard() {
 
 // 3. Finish Game
 async function finishGame() {
+    if (status === 'finished') return;
     clearInterval(gameInterval);
     clearInterval(scoringInterval);
     status = 'finished';
@@ -216,24 +298,45 @@ async function finishGame() {
         status: 'finished'
     });
 
+    stopAllBg();
     showView('finished');
-    renderFinalResults();
+    showPodium();
 }
 
-function renderFinalResults() {
+async function showPodium() {
     const sorted = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
-    finalResultsBody.innerHTML = "";
-    sorted.forEach((p, i) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>#${i + 1}</td>
-            <td>${p.name}</td>
-            <td>${p.wpm || 0}</td>
-            <td>${p.accuracy || 100}%</td>
-            <td><strong>${(p.score || 0).toLocaleString()}</strong></td>
-        `;
-        finalResultsBody.appendChild(row);
+    const spots = [
+        document.querySelector("#podium-1"),
+        document.querySelector("#podium-2"),
+        document.querySelector("#podium-3")
+    ];
+
+    spots.forEach((s, i) => {
+        if (s) {
+            s.style.opacity = "0";
+            s.classList.remove("reveal");
+            if (sorted[i]) {
+                s.querySelector(".name").textContent = sorted[i].name;
+                s.querySelector(".score").textContent = `${(sorted[i].score || 0).toLocaleString()} pts`;
+            } else {
+                s.querySelector(".name").textContent = "---";
+                s.querySelector(".score").textContent = "0 pts";
+            }
+        }
     });
+
+    // Sequence the reveal
+    setTimeout(() => {
+        if (spots[2]) spots[2].classList.add("reveal"); // 3rd
+        setTimeout(() => {
+            if (spots[1]) spots[1].classList.add("reveal"); // 2nd
+            setTimeout(() => {
+                if (spots[0]) spots[0].classList.add("reveal"); // 1st
+                sounds.podium.play().catch(() => { });
+                launchConfetti();
+            }, 800);
+        }, 800);
+    }, 500);
 }
 
 init();
