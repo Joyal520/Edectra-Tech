@@ -305,16 +305,21 @@ async function finishGame() {
 
 async function showPodium() {
     const sorted = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
+    const stage = document.getElementById("podiumStage");
+    const podiumTitle = document.getElementById("podiumTitle");
     const spots = [
         document.querySelector("#podium-1"),
         document.querySelector("#podium-2"),
         document.querySelector("#podium-3")
     ];
 
+    // Reset initial state
+    if (podiumTitle) podiumTitle.style.opacity = "0";
+    stage.className = "podium-stage";
     spots.forEach((s, i) => {
         if (s) {
             s.style.opacity = "0";
-            s.classList.remove("reveal");
+            s.classList.remove("reveal", "spotlight");
             if (sorted[i]) {
                 s.querySelector(".name").textContent = sorted[i].name;
                 s.querySelector(".score").textContent = `${(sorted[i].score || 0).toLocaleString()} pts`;
@@ -325,18 +330,64 @@ async function showPodium() {
         }
     });
 
-    // Sequence the reveal
+    // === STEP 1: Zoom into 3rd place ===
     setTimeout(() => {
-        if (spots[2]) spots[2].classList.add("reveal"); // 3rd
+        stage.classList.add("zoom-3rd");
         setTimeout(() => {
-            if (spots[1]) spots[1].classList.add("reveal"); // 2nd
+            if (spots[2]) spots[2].classList.add("reveal", "spotlight");
+        }, 400);
+
+        // === STEP 2: Pan to 2nd place ===
+        setTimeout(() => {
+            if (spots[2]) spots[2].classList.remove("spotlight");
+            stage.classList.remove("zoom-3rd");
+            stage.classList.add("zoom-2nd");
             setTimeout(() => {
-                if (spots[0]) spots[0].classList.add("reveal"); // 1st
-                sounds.podium.play().catch(() => { });
-                launchConfetti();
-            }, 800);
-        }, 800);
+                if (spots[1]) spots[1].classList.add("reveal", "spotlight");
+            }, 400);
+
+            // === STEP 3: Dramatic zoom to 1st place ===
+            setTimeout(() => {
+                if (spots[1]) spots[1].classList.remove("spotlight");
+                stage.classList.remove("zoom-2nd");
+                stage.classList.add("zoom-1st");
+                setTimeout(() => {
+                    if (spots[0]) {
+                        spots[0].classList.add("reveal", "spotlight");
+                        const crown = spots[0].querySelector(".crown-icon");
+                        if (crown) crown.style.display = "block";
+                    }
+                    sounds.podium.play().catch(() => { });
+                    launchConfetti();
+                }, 400);
+
+                // === STEP 4: Zoom out to reveal all, show title ===
+                setTimeout(() => {
+                    if (spots[0]) spots[0].classList.remove("spotlight");
+                    stage.classList.remove("zoom-1st");
+                    stage.classList.add("zoom-out");
+                    if (podiumTitle) podiumTitle.style.opacity = "1";
+                }, 3000);
+            }, 2500);
+        }, 2500);
     }, 500);
+}
+
+// -- Fullscreen FAB Handler -----------------------------------------------------
+const fullscreenFab = document.getElementById("fullscreenFab");
+if (fullscreenFab) {
+    fullscreenFab.addEventListener("click", () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => { });
+            fullscreenFab.textContent = "\u2715";
+        } else {
+            document.exitFullscreen().catch(() => { });
+            fullscreenFab.textContent = "\u26F6";
+        }
+    });
+    document.addEventListener("fullscreenchange", () => {
+        fullscreenFab.textContent = document.fullscreenElement ? "\u2715" : "\u26F6";
+    });
 }
 
 init();

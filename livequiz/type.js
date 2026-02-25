@@ -172,6 +172,18 @@ function setupTypingLogic() {
             }
         });
 
+        // Auto-scroll passage box to keep current character visible
+        const activeCharId = currentLen < passage.length ? `char-${currentLen}` : `char-${currentLen - 1}`;
+        const activeSpan = document.getElementById(activeCharId);
+        if (activeSpan) {
+            const containerRect = passageDisplay.getBoundingClientRect();
+            const spanRect = activeSpan.getBoundingClientRect();
+            // If the active char is near the bottom or below the visible area, scroll down
+            const offsetInContainer = spanRect.top - containerRect.top + passageDisplay.scrollTop;
+            const targetScroll = offsetInContainer - containerRect.height / 2;
+            passageDisplay.scrollTop = Math.max(0, targetScroll);
+        }
+
         const progress = Math.min(100, Math.round((currentLen / passage.length) * 100));
         progressDisplay.textContent = `Progress: ${progress}%`;
 

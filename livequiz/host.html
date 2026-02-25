@@ -158,6 +158,126 @@
       z-index: 9999;
       display: none;
     }
+
+    /* ── Podium Camera Zoom System ── */
+    .podium-stage {
+      display: flex;
+      align-items: flex-end;
+      gap: 30px;
+      height: 350px;
+      transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      transform-origin: center bottom;
+    }
+
+    .podium-stage.zoom-3rd {
+      transform: scale(1.6) translateX(30%);
+    }
+
+    .podium-stage.zoom-2nd {
+      transform: scale(1.6) translateX(-30%);
+    }
+
+    .podium-stage.zoom-1st {
+      transform: scale(1.8) translateX(0);
+    }
+
+    .podium-stage.zoom-out {
+      transform: scale(1) translateX(0);
+    }
+
+    .podium-spot {
+      transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transform: translateY(100px);
+      opacity: 0;
+      position: relative;
+    }
+
+    .podium-spot.reveal {
+      transform: translateY(0);
+      opacity: 1 !important;
+    }
+
+    /* Spotlight glow on each revealed spot */
+    .podium-spot.spotlight {
+      filter: brightness(1.3);
+      z-index: 10;
+    }
+
+    .podium-spot:not(.spotlight):not(:only-child) {
+      transition: filter 0.5s;
+    }
+
+    /* Extra effects for 1st place */
+    #podium-1.reveal {
+      box-shadow: 0 0 50px rgba(255, 215, 0, 0.4);
+      border: 4px solid var(--accent-warning);
+    }
+
+    #podium-1.spotlight {
+      animation: winner-pulse 1.5s ease-in-out infinite;
+      box-shadow: 0 0 80px rgba(255, 215, 0, 0.6),
+        0 0 160px rgba(255, 215, 0, 0.3),
+        inset 0 0 40px rgba(255, 215, 0, 0.15);
+    }
+
+    @keyframes winner-pulse {
+
+      0%,
+      100% {
+        transform: translateY(0) scale(1);
+        filter: brightness(1.3);
+      }
+
+      50% {
+        transform: translateY(-8px) scale(1.05);
+        filter: brightness(1.6);
+      }
+    }
+
+    /* Crown emoji for winner */
+    .crown-icon {
+      font-size: 3rem;
+      animation: crown-bounce 1s ease-in-out infinite;
+      margin-bottom: 8px;
+    }
+
+    @keyframes crown-bounce {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(-5deg);
+      }
+
+      50% {
+        transform: translateY(-10px) rotate(5deg);
+      }
+    }
+
+    /* Fullscreen floating button */
+    .fullscreen-fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 9998;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(12px);
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .fullscreen-fab:hover {
+      transform: scale(1.12);
+      background: rgba(99, 102, 241, 0.4);
+    }
   </style>
 </head>
 
@@ -338,26 +458,28 @@ A: Option 4</code>
   </div>
 
   <!-- 4. PODIUM VIEW -->
-  <div id="view-podium" class="game-view flex-center stack" style="height: 100vh; gap: 40px;">
-    <h1 class="animate-float" style="font-size:5rem;margin-bottom:20px;text-shadow:0 0 30px var(--accent-primary);">
+  <div id="view-podium" class="game-view flex-center stack" style="height: 100vh; gap: 40px; overflow: hidden;">
+    <h1 id="podiumTitle" class="animate-float"
+      style="font-size:5rem;margin-bottom:20px;text-shadow:0 0 30px var(--accent-primary); opacity: 0; transition: opacity 0.8s;">
       &#127942; CHAMPIONS &#127942;
     </h1>
-    <div style="display: flex; align-items: flex-end; gap: 30px; height: 350px;">
+    <div class="podium-stage" id="podiumStage">
       <div id="podium-2" class="glass-card flex-center stack podium-spot"
         style="width: 200px; height: 65%; background: linear-gradient(to top, rgba(192,192,192,0.3), var(--glass));">
-        <div class="name">--</div>
+        <div class="name" style="font-weight: 800; font-size: 1.5rem;">--</div>
         <div class="score" style="font-size: 1.2rem; color: var(--text-muted); margin-bottom: 15px;">0 pts</div>
         <div style="font-size: 3rem; font-weight: 900; opacity: 0.5;">2nd</div>
       </div>
       <div id="podium-1" class="glass-card flex-center stack podium-spot"
         style="width: 250px; height: 100%; background: linear-gradient(to top, rgba(255,215,0,0.3), var(--glass));">
-        <div class="name">--</div>
+        <div class="crown-icon" style="display: none;">👑</div>
+        <div class="name" style="font-weight: 800; font-size: 2rem; color: var(--accent-warning);">--</div>
         <div class="score" style="font-size: 1.5rem; color: var(--accent-warning); margin-bottom: 15px;">0 pts</div>
         <div style="font-size: 4.5rem; font-weight: 900;">1st</div>
       </div>
       <div id="podium-3" class="glass-card flex-center stack podium-spot"
         style="width: 200px; height: 50%; background: linear-gradient(to top, rgba(205,127,50,0.3), var(--glass));">
-        <div class="name">--</div>
+        <div class="name" style="font-weight: 800; font-size: 1.5rem;">--</div>
         <div class="score" style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 15px;">0 pts</div>
         <div style="font-size: 2.5rem; font-weight: 900; opacity: 0.5;">3rd</div>
       </div>
@@ -365,6 +487,9 @@ A: Option 4</code>
     <button onclick="location.reload()" class="btn-primary"
       style="margin-top: 20px; padding: 20px 60px; font-size: 1.2rem;">New Game</button>
   </div>
+
+  <!-- Floating Fullscreen Button -->
+  <button class="fullscreen-fab" id="fullscreenFab" title="Toggle Fullscreen">⛶</button>
 
   <script type="module" src="host.js"></script>
 </body>
