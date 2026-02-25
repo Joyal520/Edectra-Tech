@@ -31,8 +31,15 @@ const charCountEl = document.getElementById("charCount");
 const durationDisplay = document.getElementById("durationDisplay");
 const gameTimer = document.getElementById("gameTimer");
 const leaderboardBody = document.getElementById("leaderboardBody");
-const finalResultsBody = document.getElementById("finalResultsBody");
 const passageRunning = document.getElementById("passageRunning");
+const timerRing = document.getElementById("timerRing");
+const circularTimer = document.getElementById("circularTimer");
+const raceLanes = document.getElementById("raceLanes");
+const statPlayers = document.getElementById("statPlayers");
+const statAvgWpm = document.getElementById("statAvgWpm");
+const statTopWpm = document.getElementById("statTopWpm");
+const statAvgAcc = document.getElementById("statAvgAcc");
+const RACE_COLORS = ['#f59e0b', '#6366f1', '#22d3ee', '#10b981', '#ec4899', '#f97316', '#a78bfa', '#38bdf8'];
 
 // -- Audio ---------------------------------------------------------------------
 const sounds = {
@@ -213,18 +220,29 @@ startBtn.addEventListener("click", async () => {
 });
 
 function startTimers() {
-    // Game Timer (Countdown)
+    const CIRCUMFERENCE = 2 * Math.PI * 45; // ~283
+    if (timerRing) timerRing.style.strokeDasharray = CIRCUMFERENCE;
+
     gameInterval = setInterval(() => {
         const elapsed = Math.floor((Date.now() - startMs) / 1000);
         const remaining = Math.max(0, durationSec - elapsed);
         gameTimer.textContent = remaining;
+
+        // Update ring
+        if (timerRing) {
+            const offset = CIRCUMFERENCE * (1 - remaining / durationSec);
+            timerRing.style.strokeDashoffset = offset;
+        }
+        if (circularTimer) {
+            if (remaining <= 10) circularTimer.classList.add('timer-critical');
+            else circularTimer.classList.remove('timer-critical');
+        }
 
         if (remaining <= 0) {
             finishGame();
         }
     }, 1000);
 
-    // Scoring Loop (Frequency: 1s)
     scoringInterval = setInterval(() => {
         calculateAllScores();
     }, 1000);
@@ -270,21 +288,80 @@ function updateLeaderboard() {
     const sorted = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
     leaderboardBody.innerHTML = "";
 
-    sorted.forEach(p => {
-        const row = document.createElement("tr");
+    sorted.forEach((p, i) => {
+        const rank = i + 1;
         const flags = [];
         if (p.flags?.suspiciousSpeed) flags.push("🚀 Speed!");
         if (p.blurCount > 2) flags.push(`😴 Focus (${p.blurCount})`);
 
-        row.innerHTML = `
-            <td>${p.name}</td>
-            <td>${p.wpm || 0}</td>
-            <td>${p.accuracy || 100}%</td>
-            <td><strong>${(p.score || 0).toLocaleString()}</strong></td>
-            <td class="flag-warning">${flags.join(", ")}</td>
+        let rankClass = 'normal';
+        let topClass = '';
+        let scoreClass = '';
+        if (rank === 1) { rankClass = 'gold'; topClass = 'top-1'; scoreClass = 'gold'; }
+        else if (rank === 2) { rankClass = 'silver'; topClass = 'top-2'; }
+        else if (rank === 3) { rankClass = 'bronze'; topClass = 'top-3'; }
+
+        const medals = ['🥇', '🥈', '🥉'];
+        const rankLabel = rank <= 3 ? medals[rank - 1] : rank;
+
+        const card = document.createElement('div');
+        card.className = `player-card ${topClass}`;
+        card.innerHTML = `
+            <div class="rank-badge ${rankClass}">${rankLabel}</div>
+            <div class="pc-info">
+                <div class="pc-name">${p.name}</div>
+                <div class="pc-stats">
+                    <div class="pc-stat">⚡ <span class="val">${p.wpm || 0}</span> WPM</div>
+                    <div class="pc-stat">🎯 <span class="val">${p.accuracy || 100}%</span></div>
+                    ${p.done ? '<div class="pc-stat" style="color:var(--accent-success)">✅ Done</div>' : ''}
+                </div>
+            </div>
+            ${flags.length ? `<div class="pc-flags">${flags.map(f => `<span class="flag-chip">${f}</span>`).join('')}</div>` : ''}
+            <div class="pc-score ${scoreClass}">${(p.score || 0).toLocaleString()}</div>
         `;
-        leaderboardBody.appendChild(row);
+        leaderboardBody.appendChild(card);
     });
+
+    // Update race lanes
+    updateRaceLanes(sorted);
+    // Update live stats
+    updateLiveStats(sorted);
+}
+
+function updateRaceLanes(sorted) {
+    if (!raceLanes) return;
+    raceLanes.innerHTML = '';
+    const passLen = currentPassage.length || 1;
+
+    sorted.forEach((p, i) => {
+        const pct = Math.min(100, Math.round(((p.typedLen || 0) / passLen) * 100));
+        const color = RACE_COLORS[i % RACE_COLORS.length];
+        const lane = document.createElement('div');
+        lane.className = 'race-lane';
+        lane.innerHTML = `
+            <div class="race-name">${p.name}</div>
+            <div class="race-bar-wrap">
+                <div class="race-bar" style="width:${pct}%; background: linear-gradient(90deg, ${color}, ${color}dd);"></div>
+            </div>
+            <div class="race-pct">${pct}%</div>
+        `;
+        raceLanes.appendChild(lane);
+    });
+}
+
+function updateLiveStats(sorted) {
+    const count = sorted.length;
+    if (statPlayers) statPlayers.textContent = count;
+
+    if (count === 0) return;
+
+    const totalWpm = sorted.reduce((s, p) => s + (p.wpm || 0), 0);
+    const topWpm = sorted.reduce((m, p) => Math.max(m, p.wpm || 0), 0);
+    const totalAcc = sorted.reduce((s, p) => s + (p.accuracy || 100), 0);
+
+    if (statAvgWpm) statAvgWpm.textContent = Math.round(totalWpm / count);
+    if (statTopWpm) statTopWpm.textContent = topWpm;
+    if (statAvgAcc) statAvgAcc.textContent = `${Math.round(totalAcc / count)}%`;
 }
 
 // 3. Finish Game

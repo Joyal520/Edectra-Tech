@@ -33,8 +33,16 @@ async function init() {
     const user = await ensureAnonAuth();
     uid = user.uid;
 
+    // Block mobile devices
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        || (window.matchMedia('(pointer: coarse)').matches && window.innerWidth < 900);
+    if (isMobile) {
+        const overlay = document.getElementById('mobileBlock');
+        if (overlay) overlay.classList.add('active');
+        return; // Stop all further initialization
+    }
+
     if (sid) {
-        // Pre-fill PIN if sid is in URL
         pinInput.style.display = "none";
     }
 }
@@ -211,9 +219,16 @@ function throttleUpdate(len, err) {
 }
 
 function setupAntiCheat() {
-    // Disable paste, drop, contextmenu
-    ['paste', 'drop', 'contextmenu'].forEach(evt => {
+    // Disable paste, cut, drop, contextmenu
+    ['paste', 'cut', 'drop', 'contextmenu'].forEach(evt => {
         typingArea.addEventListener(evt, e => e.preventDefault());
+    });
+
+    // Block Ctrl+V / Cmd+V keyboard shortcut as secondary defense
+    typingArea.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
+            e.preventDefault();
+        }
     });
 
     // Detect blur

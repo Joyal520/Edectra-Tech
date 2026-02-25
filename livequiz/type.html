@@ -117,12 +117,60 @@
             backdrop-filter: blur(4px);
             display: none;
         }
+
+        /* Mobile Block Overlay */
+        .mobile-block {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: var(--bg-deep);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+            gap: 20px;
+        }
+
+        .mobile-block.active {
+            display: flex;
+        }
+
+        .mobile-block .block-icon {
+            font-size: 5rem;
+            margin-bottom: 10px;
+        }
+
+        .mobile-block h1 {
+            font-size: 2rem;
+            margin: 0;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .mobile-block p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 400px;
+            line-height: 1.6;
+        }
     </style>
 </head>
 
 <body>
     <div class="aurora"></div>
     <div class="bg-overlay"></div>
+
+    <!-- Mobile Block Overlay -->
+    <div id="mobileBlock" class="mobile-block">
+        <div class="block-icon">💻</div>
+        <h1>Desktop Only</h1>
+        <p>This typing competition requires a physical keyboard. Please join from a PC or laptop.</p>
+        <p style="font-size: 0.85rem; opacity: 0.5;">Mobile devices and tablets are not supported.</p>
+    </div>
 
     <!-- JOIN VIEW -->
     <div id="view-join" class="glass-card arena-container">
@@ -157,7 +205,8 @@
 
         <div style="position: relative;">
             <div id="lockOverlay" class="lock-overlay">FINISHED</div>
-            <textarea id="typingArea" class="typing-area" placeholder="Start typing when the host begins..."></textarea>
+            <textarea id="typingArea" class="typing-area" placeholder="Start typing when the host begins..."
+                autocomplete="off" spellcheck="false"></textarea>
         </div>
 
         <div class="stack" style="margin-top: 24px; color: var(--text-muted);">

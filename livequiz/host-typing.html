@@ -29,23 +29,11 @@
             display: none;
         }
 
-        .podium-spot {
-            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            transform: translateY(100px);
-            opacity: 0;
-            position: relative;
+        .game-view {
+            display: none;
         }
 
-        .podium-spot.reveal {
-            transform: translateY(0);
-            opacity: 1 !important;
-        }
-
-        #podium-1.reveal {
-            box-shadow: 0 0 50px rgba(255, 215, 0, 0.4);
-            border: 4px solid var(--accent-warning);
-        }
-
+        /* ── Pin & Lobby ── */
         .pin-display {
             font-size: 100px;
             font-weight: 900;
@@ -68,43 +56,467 @@
             text-align: left;
         }
 
-        .stats-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+        /* ═══════════════════════════════════════════
+           RUNNING VIEW — PREMIUM LIVE ARENA
+           ═══════════════════════════════════════════ */
+
+        /* Arena Header */
+        .arena-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 32px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(109, 94, 252, 0.15), rgba(34, 211, 238, 0.1));
+            border: 1px solid rgba(109, 94, 252, 0.3);
+            position: relative;
+            overflow: hidden;
         }
 
-        .stats-table th {
-            text-align: left;
-            padding: 12px;
-            border-bottom: 2px solid var(--glass-border);
+        .arena-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-primary), var(--accent-secondary), transparent);
+            animation: header-shine 3s linear infinite;
+        }
+
+        @keyframes header-shine {
+            to {
+                transform: translateX(50%);
+            }
+        }
+
+        .arena-title {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .arena-title h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #a78bfa, #22d3ee);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .arena-title .keyboard-icon {
+            font-size: 2rem;
+            filter: drop-shadow(0 0 8px rgba(109, 94, 252, 0.5));
+        }
+
+        /* Circular Timer */
+        .circular-timer {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            flex-shrink: 0;
+        }
+
+        .circular-timer svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .timer-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.08);
+            stroke-width: 6;
+        }
+
+        .timer-ring {
+            fill: none;
+            stroke: url(#timerGradient);
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-dasharray: 283;
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        .timer-text {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .timer-text .time-num {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--accent-warning);
+            line-height: 1;
+        }
+
+        .timer-text .time-label {
+            font-size: 0.6rem;
             color: var(--text-muted);
-            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        .stats-table td {
-            padding: 12px;
-            border-bottom: 1px solid var(--glass-border);
+        .timer-critical .timer-ring {
+            stroke: var(--accent-error);
+            animation: ring-pulse 0.8s ease-in-out infinite;
         }
 
-        .flag-warning {
-            color: var(--accent-error);
+        @keyframes ring-pulse {
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Live Stats Strip */
+        .stats-strip {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .stat-badge {
+            flex: 1;
+            min-width: 130px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .stat-badge:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 15px rgba(109, 94, 252, 0.15);
+        }
+
+        .stat-icon {
+            font-size: 1.4rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon.players {
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .stat-icon.avg-wpm {
+            background: rgba(34, 211, 238, 0.2);
+        }
+
+        .stat-icon.top-wpm {
+            background: rgba(245, 158, 11, 0.2);
+        }
+
+        .stat-icon.accuracy {
+            background: rgba(16, 185, 129, 0.2);
+        }
+
+        .stat-info .stat-value {
+            font-size: 1.3rem;
+            font-weight: 900;
+            line-height: 1.2;
+        }
+
+        .stat-info .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Race Track */
+        .race-track {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px 24px;
+        }
+
+        .race-track h3 {
+            margin: 0 0 14px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .race-lane {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .race-name {
+            width: 80px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .race-bar-wrap {
+            flex: 1;
+            height: 22px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 11px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .race-bar {
+            height: 100%;
+            border-radius: 11px;
+            transition: width 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            min-width: 2px;
+        }
+
+        .race-bar::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3));
+            border-radius: 0 11px 11px 0;
+        }
+
+        .race-pct {
+            font-size: 0.75rem;
+            font-weight: 800;
+            width: 40px;
+            text-align: right;
+            color: var(--text-muted);
+        }
+
+        /* Leaderboard Cards */
+        .lb-section {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 24px;
+        }
+
+        .lb-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .lb-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: live-blink 1.2s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        @keyframes live-blink {
+
+            0%,
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 6px #ef4444;
+            }
+
+            50% {
+                opacity: 0.3;
+                box-shadow: none;
+            }
+        }
+
+        .live-tag {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #ef4444;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .player-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            margin-bottom: 8px;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .player-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateX(4px);
+        }
+
+        .player-card.top-1 {
+            border-color: rgba(255, 215, 0, 0.3);
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), transparent);
+        }
+
+        .player-card.top-2 {
+            border-color: rgba(192, 192, 192, 0.25);
+            background: rgba(192, 192, 192, 0.04);
+        }
+
+        .player-card.top-3 {
+            border-color: rgba(205, 127, 50, 0.25);
+            background: rgba(205, 127, 50, 0.04);
+        }
+
+        .rank-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .rank-badge.gold {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #000;
+        }
+
+        .rank-badge.silver {
+            background: linear-gradient(135deg, #d1d5db, #9ca3af);
+            color: #000;
+        }
+
+        .rank-badge.bronze {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            color: #fff;
+        }
+
+        .rank-badge.normal {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+        }
+
+        .pc-info {
+            flex: 1;
+        }
+
+        .pc-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        .pc-stats {
+            display: flex;
+            gap: 14px;
+        }
+
+        .pc-stat {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .pc-stat .val {
+            color: var(--text-bright);
             font-weight: 800;
         }
 
-        .game-view {
-            display: none;
+        .pc-score {
+            font-size: 1.3rem;
+            font-weight: 900;
+            font-family: 'Plus Jakarta Sans', monospace;
+            text-align: right;
+            min-width: 80px;
         }
 
-        .timer-display {
-            font-size: 48px;
-            font-weight: 800;
+        .pc-score.gold {
             color: var(--accent-warning);
         }
 
-        /* ── Podium Camera Zoom System ── */
+        .pc-flags {
+            display: flex;
+            gap: 4px;
+        }
+
+        .flag-chip {
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-error);
+            font-weight: 700;
+        }
+
+        /* Passage Preview in Running */
+        .passage-running-wrap {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 16px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            max-height: 70px;
+            overflow-y: auto;
+            line-height: 1.5;
+            scroll-behavior: smooth;
+        }
+
+        /* ── Podium & Camera Zoom ── */
+        .podium-spot {
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: translateY(100px);
+            opacity: 0;
+            position: relative;
+        }
+
+        .podium-spot.reveal {
+            transform: translateY(0);
+            opacity: 1 !important;
+        }
+
+        #podium-1.reveal {
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.4);
+            border: 4px solid var(--accent-warning);
+        }
+
         .podium-stage {
             display: flex;
             align-items: flex-end;
@@ -137,9 +549,7 @@
 
         #podium-1.spotlight {
             animation: winner-pulse 1.5s ease-in-out infinite;
-            box-shadow: 0 0 80px rgba(255, 215, 0, 0.6),
-                0 0 160px rgba(255, 215, 0, 0.3),
-                inset 0 0 40px rgba(255, 215, 0, 0.15);
+            box-shadow: 0 0 80px rgba(255, 215, 0, 0.6), 0 0 160px rgba(255, 215, 0, 0.3), inset 0 0 40px rgba(255, 215, 0, 0.15);
         }
 
         @keyframes winner-pulse {
@@ -174,6 +584,7 @@
             }
         }
 
+        /* Fullscreen FAB */
         .fullscreen-fab {
             position: fixed;
             bottom: 20px;
@@ -273,37 +684,85 @@
         </div>
     </div>
 
-    <!-- 3. RUNNING VIEW -->
-    <div id="view-running" class="game-view stack" style="gap: 24px;">
-        <div class="glass-card"
-            style="padding: 24px; display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h2>Competition in Progress</h2>
-                <div id="passageRunning" class="passage-preview" style="max-height: 80px; width: 600px;"></div>
+    <!-- 3. RUNNING VIEW — PREMIUM LIVE ARENA -->
+    <div id="view-running" class="game-view stack" style="gap: 20px;">
+
+        <!-- Arena Header -->
+        <div class="arena-header">
+            <div class="arena-title">
+                <span class="keyboard-icon">⌨️</span>
+                <div>
+                    <h2>LIVE TYPING ARENA</h2>
+                    <div id="passageRunning" class="passage-running-wrap" style="width: 520px; margin-top: 8px;"></div>
+                </div>
             </div>
-            <div class="timer-display" id="gameTimer">--</div>
+            <div class="circular-timer" id="circularTimer">
+                <svg viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#f59e0b" />
+                            <stop offset="100%" stop-color="#ef4444" />
+                        </linearGradient>
+                    </defs>
+                    <circle class="timer-bg" cx="50" cy="50" r="45" />
+                    <circle class="timer-ring" id="timerRing" cx="50" cy="50" r="45" />
+                </svg>
+                <div class="timer-text">
+                    <span class="time-num" id="gameTimer">--</span>
+                    <span class="time-label">sec</span>
+                </div>
+            </div>
         </div>
 
-        <div class="glass-card" style="padding: 24px;">
-            <div class="leaderboard-header">
-                <h3>Live Leaderboard</h3>
-                <span id="liveStatus" style="color: var(--accent-success); font-size: 12px; font-weight: 800;">● LIVE
-                    SCORING</span>
+        <!-- Live Stats Strip -->
+        <div class="stats-strip">
+            <div class="stat-badge">
+                <div class="stat-icon players">👥</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statPlayers">0</div>
+                    <div class="stat-label">Players</div>
+                </div>
             </div>
-            <table class="stats-table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>WPM</th>
-                        <th>Accuracy</th>
-                        <th>Score</th>
-                        <th>Flags</th>
-                    </tr>
-                </thead>
-                <tbody id="leaderboardBody">
-                    <!-- Rows will be injected by JS -->
-                </tbody>
-            </table>
+            <div class="stat-badge">
+                <div class="stat-icon avg-wpm">⚡</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statAvgWpm">0</div>
+                    <div class="stat-label">Avg WPM</div>
+                </div>
+            </div>
+            <div class="stat-badge">
+                <div class="stat-icon top-wpm">🏆</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statTopWpm">0</div>
+                    <div class="stat-label">Top WPM</div>
+                </div>
+            </div>
+            <div class="stat-badge">
+                <div class="stat-icon accuracy">🎯</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statAvgAcc">100%</div>
+                    <div class="stat-label">Avg Accuracy</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Race Track -->
+        <div class="race-track" id="raceTrack">
+            <h3>🏁 TYPING RACE</h3>
+            <div id="raceLanes">
+                <!-- Race lanes injected by JS -->
+            </div>
+        </div>
+
+        <!-- Ranked Leaderboard -->
+        <div class="lb-section">
+            <div class="lb-header">
+                <h3>📊 Live Leaderboard</h3>
+                <div class="live-tag"><span class="live-dot"></span> LIVE SCORING</div>
+            </div>
+            <div id="leaderboardBody">
+                <!-- Player cards -->
+            </div>
         </div>
     </div>
 
