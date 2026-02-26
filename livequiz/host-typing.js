@@ -431,7 +431,7 @@ async function showPodium() {
                 setTimeout(() => {
                     if (spots[0]) {
                         spots[0].classList.add("reveal", "spotlight");
-                        const crown = spots[0].querySelector(".crown-icon");
+                        const crown = spots[0].querySelector(".winner-fx");
                         if (crown) crown.style.display = "block";
                     }
                     sounds.podium.play().catch(() => { });

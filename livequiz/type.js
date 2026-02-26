@@ -69,7 +69,7 @@ async function joinSession() {
     const sessionSnap = await Fire.getDoc(doc(db, "typingSessions", sid));
     if (!sessionSnap.exists()) return alert("Session not found!");
 
-    passage = sessionSnap.data().text;
+    passage = sessionSnap.data().text.replace(/[‘’`]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, "-");
     waitingName.textContent = `Joined as ${name}`;
     showView('waiting');
 
@@ -154,7 +154,7 @@ function renderPassage() {
 function setupTypingLogic() {
     typingArea.focus();
     typingArea.addEventListener("input", () => {
-        const typed = typingArea.value;
+        const typed = typingArea.value.replace(/[‘’`]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, "-");
         const currentLen = typed.length;
 
         // Anti-cheat: suspicious jumps
@@ -257,7 +257,7 @@ async function finishGame() {
     lockOverlay.style.display = "flex";
 
     // Final update
-    const typed = typingArea.value;
+    const typed = typingArea.value.replace(/[‘’`]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, "-");
     let errors = 0;
     for (let i = 0; i < typed.length; i++) {
         if (typed[i] !== passage[i]) errors++;

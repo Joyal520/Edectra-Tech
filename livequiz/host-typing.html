@@ -566,22 +566,16 @@
             }
         }
 
-        .crown-icon {
-            font-size: 3rem;
-            animation: crown-bounce 1s ease-in-out infinite;
-            margin-bottom: 8px;
+        .winner-fx {
+            font-size: 3.5rem;
+            animation: fx-pulse 1.5s ease-in-out infinite alternate;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8));
         }
 
-        @keyframes crown-bounce {
-
-            0%,
-            100% {
-                transform: translateY(0) rotate(-5deg);
-            }
-
-            50% {
-                transform: translateY(-10px) rotate(5deg);
-            }
+        @keyframes fx-pulse {
+            0% { transform: scale(1) translateY(0); filter: hue-rotate(0deg) drop-shadow(0 0 10px rgba(255, 215, 0, 0.5)); }
+            100% { transform: scale(1.15) translateY(-5px); filter: hue-rotate(15deg) drop-shadow(0 0 25px rgba(255, 170, 0, 0.9)); }
         }
 
         /* Fullscreen FAB */
@@ -785,7 +779,7 @@
 
             <div id="podium-1" class="glass-card flex-center stack podium-spot"
                 style="width: 250px; height: 100%; background: linear-gradient(to top, rgba(255,215,0,0.3), var(--glass));">
-                <div class="crown-icon" style="display: none;">👑</div>
+                <div class="winner-fx" style="display: none;">✨🏆✨</div>
                 <div class="name" style="font-weight: 800; font-size: 2rem; color: var(--accent-warning);">--</div>
                 <div class="score" style="font-size: 1.5rem; color: var(--accent-warning); margin-bottom: 15px;">0
                     pts</div>
