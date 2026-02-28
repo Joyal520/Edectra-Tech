@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdTechra - Host Game</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style_v3.css?v=5">
+    <link rel="stylesheet" href="start_screen_premium.css?v=1">
+    <link rel="stylesheet" href="game_page_premium.css?v=1">
+    <link rel="stylesheet" href="host-extra.css?v=1">
+</head>
+
+<body>
+
+    <!-- Animated Background Blobs -->
+    <div class="blobs">
+        <div class="blob b1"></div>
+        <div class="blob b2"></div>
+        <div class="blob b3"></div>
+        <div class="blob b4"></div>
+        <div class="blob b5"></div>
+    </div>
+
+    <!-- ==================== HOST LOBBY ==================== -->
+    <div id="host-lobby" class="host-lobby">
+        <div class="host-lobby-logo">🎲 EDTECHRA</div>
+        <div class="host-lobby-sub">Host Dashboard</div>
+
+        <div class="lobby-setup-grid">
+            <!-- Game Settings -->
+            <div class="setup-card">
+                <h3>⚙️ Game Settings</h3>
+                <label>Game Mode</label>
+                <select id="host-mode">
+                    <option value="solo">👤 Solo (Individual Players)</option>
+                    <option value="teams">🏆 Teams (Group Play)</option>
+                </select>
+
+                <label>Timer (seconds)</label>
+                <input type="number" id="host-timer" value="20" min="5" max="120">
+
+                <label>
+                    <input type="checkbox" id="host-chaos-toggle"> 🔥 Chaos Mode
+                </label>
+            </div>
+
+            <!-- Quiz Import -->
+            <div class="setup-card">
+                <h3>📚 Quiz Content</h3>
+                <label>Custom Quiz (Optional)</label>
+                <textarea id="host-quiz-import"
+                    placeholder="TITLE: My Quiz&#10;Q: What is 2+2?&#10;A: 3&#10;*A: 4&#10;A: 5&#10;A: 6"></textarea>
+            </div>
+
+            <!-- Join Code & Players (shown after create) -->
+            <div class="setup-card full-width" id="lobby-info-card" style="display:none;">
+                <h3>📡 Game Lobby</h3>
+                <div style="text-align: center;">
+                    <label>Share this code with players</label>
+                    <div class="join-code-display" id="join-code-display" onclick="copyJoinCode()">------</div>
+                    <div class="join-code-hint">Click to copy • Players join at play.html</div>
+                </div>
+                <label>Connected Players (<span id="player-count-live">0</span>)</label>
+                <div class="lobby-players-list" id="lobby-players-list">
+                    <!-- Player chips injected by JS -->
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-host-start" id="btn-create-game" onclick="createGame()">🎮 CREATE GAME</button>
+        <button class="btn-host-start" id="btn-start-game" onclick="hostStartGame()" style="display:none;" disabled>
+            🚀 START GAME
+        </button>
+    </div>
+
+    <!-- ==================== GAME SCREEN (reuses existing board structure) ==================== -->
+    <div id="game-screen" class="hidden">
+
+        <!-- Top HUD Bar -->
+        <div class="top-hud" id="hud-top">
+            <div class="hud-left">
+                <div class="hud-logo-mini">🎲 Quest Arena</div>
+                <div id="chaos-badge" class="badge badge-chaos hidden"
+                    style="background: var(--red-color); color: white; margin-left: 12px; font-size: 0.75rem; padding: 4px 8px;">
+                    🔥 CHAOS</div>
+            </div>
+            <div class="top-hud-center">
+                <h2 class="game-title">Knowledge Quest</h2>
+                <span class="badge badge-play" id="game-mode-badge" style="display: none;">MULTIPLAYER</span>
+                <div class="turn-indicator">
+                    <span class="text-secondary">ROUND:</span>
+                    <span id="hud-player-name" class="player-accent-1" style="margin-left:8px;">--</span>
+                </div>
+            </div>
+            <div class="top-hud-right">
+                <div style="display: none;">
+                    <div id="hud-xp-fill"></div>
+                </div>
+                <div class="hud-control-group">
+                    <button class="hud-icon-btn" title="Toggle Theme" onclick="toggleDarkMode()">🌙</button>
+                    <button class="hud-icon-btn" title="Fullscreen" onclick="toggleFullScreen()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Board Container -->
+        <div id="board-area">
+            <div id="board-scaler">
+                <div id="board">
+                    <!-- Tiles injected by app_v3.js -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Dice Overlay -->
+        <div id="dice-overlay" class="dice-hidden">
+            <div class="dice-scene">
+                <div id="dice-cube">
+                    <div class="dice-face front"><span class="dot d1-center"></span></div>
+                    <div class="dice-face back">
+                        <span class="dot d6-1"></span><span class="dot d6-2"></span>
+                        <span class="dot d6-3"></span><span class="dot d6-4"></span>
+                        <span class="dot d6-5"></span><span class="dot d6-6"></span>
+                    </div>
+                    <div class="dice-face right">
+                        <span class="dot d3-1"></span><span class="dot d3-2"></span><span class="dot d3-3"></span>
+                    </div>
+                    <div class="dice-face left">
+                        <span class="dot d4-1"></span><span class="dot d4-2"></span>
+                        <span class="dot d4-3"></span><span class="dot d4-4"></span>
+                    </div>
+                    <div class="dice-face top">
+                        <span class="dot d2-1"></span><span class="dot d2-2"></span>
+                    </div>
+                    <div class="dice-face bottom">
+                        <span class="dot d5-1"></span><span class="dot d5-2"></span>
+                        <span class="dot d5-center"></span>
+                        <span class="dot d5-3"></span><span class="dot d5-4"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Panel (reused from existing) -->
+        <div id="quiz-overlay" class="hidden modal-overlay" style="background: rgba(15, 23, 42, 0.8);">
+            <div class="quiz-panel" id="quiz-panel">
+                <div class="quiz-header">
+                    <div class="quiz-header-top">
+                        <span class="badge badge-play" id="quiz-diff">STANDARD QUESTION</span>
+                        <span
+                            style="font-family: var(--font-heading); font-weight: 700; color: var(--purple-color); font-size: 1.25rem;"
+                            id="quiz-timer-text"></span>
+                    </div>
+                    <p class="quiz-question" id="quiz-question">Question goes here?</p>
+                    <div class="timer-bar-bg">
+                        <div class="timer-bar-fill" id="quiz-xp-timer-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <div id="quiz-options" class="quiz-options"></div>
+            </div>
+        </div>
+
+        <!-- Ready Bar (hidden in multiplayer, we use host controls instead) -->
+        <div id="ready-bar" class="hidden floating-buzzers">
+            <div class="buzzer-group">
+                <span class="buzzer-label" id="ready-status-list">Turn Phase</span>
+                <h2 class="buzzer-title" id="ready-title">Ready to Roll?</h2>
+                <div class="buzzer-buttons">
+                    <button class="buzzer buzzer-wait" onclick="answerReady(false)">Wait</button>
+                    <button class="buzzer buzzer-ready" onclick="answerReady(true)">Ready</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Commit Panel (kept for compat) -->
+        <div id="commit-overlay" class="hidden">
+            <div class="commit-dialog">
+                <h2>Who got it right?</h2>
+                <p>Select the players/teams that answered correctly to move them forward.</p>
+                <div id="commit-players-grid"></div>
+                <button id="btn-commit-roll" class="btn-primary" onclick="commitAndRoll()">🎲 ROLL FOR WINNERS</button>
+                <button id="btn-commit-skip" class="btn-secondary" onclick="skipRound()">⏭️ NO ONE (SKIP ROUND)</button>
+            </div>
+        </div>
+
+        <!-- Choice Overlay -->
+        <div id="choice-overlay" class="hidden">
+            <div class="choice-container">
+                <h2 id="choice-title">Make Your Choice</h2>
+                <div id="choice-grid"></div>
+            </div>
+        </div>
+
+        <!-- Bottom Leaderboard -->
+        <div style="position: absolute; bottom: 0; width: 100%; z-index: 90;" id="hud-bottom">
+            <div class="leaderboard-container">
+                <div class="leaderboard-strip" id="leaderboard">
+                    <!-- Cards injected by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Host Controls Panel (MULTIPLAYER ONLY) -->
+        <div class="host-controls" id="host-controls">
+            <div class="ctrl-card">
+                <h4>🎮 Round Control</h4>
+                <div class="round-status lobby" id="ctrl-round-status">LOBBY</div>
+                <div class="participation-bar">
+                    <div class="participation-fill">
+                        <div class="participation-fill-inner" id="ctrl-participation-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="participation-count" id="ctrl-participation-count">0/0</div>
+                </div>
+                <div class="ctrl-timer" id="ctrl-timer">--</div>
+                <div class="ctrl-row">
+                    <button class="ctrl-btn primary" id="btn-start-round" onclick="hostStartRound()">▶️ Start
+                        Round</button>
+                    <button class="ctrl-btn" id="btn-extend" onclick="hostExtendTimer()" disabled>+10s</button>
+                </div>
+                <div class="ctrl-row" style="margin-top: 6px;">
+                    <button class="ctrl-btn danger" id="btn-lock" onclick="hostLockRound()" disabled>🔒 Lock</button>
+                    <button class="ctrl-btn success" id="btn-resolve" onclick="hostResolveRound()" disabled>✅
+                        Resolve</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Victory Screen -->
+    <div id="victory-screen" class="hidden screen-container victory-screen"
+        style="position: fixed; inset: 0; background: var(--bg-color); z-index: 2000;">
+        <div
+            style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+            <div class="confetti-container" id="confetti" style="position: absolute; inset: 0; pointer-events: none;">
+            </div>
+            <div class="badge badge-play" style="margin-bottom: var(--space-8);">GAME OVER</div>
+            <h1 class="text-h1" style="font-size: 4rem; margin-bottom: var(--space-8);">Victory!</h1>
+            <p class="text-body"
+                style="color: var(--text-secondary); margin-bottom: var(--space-32); font-size: 1.25rem;">
+                Well played everyone.</p>
+            <div class="podium-container" id="winner-name"
+                style="margin-bottom: var(--space-32); display: flex; gap: 16px; align-items: flex-end; justify-content: center; min-height: 200px;">
+            </div>
+            <button class="btn btn-primary" style="padding: 16px 48px; font-size: 1.25rem; margin-top:24px;"
+                onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+
+    <!-- Screen Effects Overlay -->
+    <div id="screen-fx"></div>
+
+    <!-- Hidden compatibility elements for app_v3.js DOMContentLoaded -->
+    <div style="display:none;">
+        <div id="start-screen"></div>
+        <div id="participant-names"></div>
+        <input type="range" id="player-count" value="2">
+        <div id="player-count-label">2</div>
+        <div id="player-list"></div>
+        <textarea id="quiz-import"></textarea>
+        <input type="checkbox" id="chaos-mode-toggle">
+    </div>
+
+    <!-- Load existing game engine (board rendering, dice, movement, tile effects) -->
+    <script src="sounds_v3.js?v=4"></script>
+    <script src="app_v3.js?v=4"></script>
+
+    <!-- Multiplayer host logic (ES module) -->
+    <script type="module" src="host.js"></script>
+</body>
+
+</html>

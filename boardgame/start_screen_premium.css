@@ -1,0 +1,735 @@
+/* ============================================================
+   PREMIUM START SCREEN — DARK GLASSMORPHISM REDESIGN
+   Inspired by Stitch UI Kit: deep indigo, frosted glass, floating orbs
+   ============================================================ */
+
+/* ── Background & Container ── */
+#start-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    overflow-y: auto;
+    background: linear-gradient(160deg, #0f0d2e 0%, #1a1145 40%, #0d1b2a 100%);
+    font-family: 'Outfit', 'Lexend', sans-serif;
+}
+
+/* ── Animated Background Orbs ── */
+#start-screen::before,
+#start-screen::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    filter: blur(80px);
+}
+
+#start-screen::before {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.35), transparent 70%);
+    top: -60px;
+    left: -80px;
+    animation: orbFloat1 8s ease-in-out infinite alternate;
+}
+
+#start-screen::after {
+    width: 350px;
+    height: 350px;
+    background: radial-gradient(circle, rgba(236, 72, 153, 0.25), transparent 70%);
+    bottom: -40px;
+    right: -60px;
+    animation: orbFloat2 10s ease-in-out infinite alternate;
+}
+
+@keyframes orbFloat1 {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    100% {
+        transform: translate(60px, 40px) scale(1.2);
+    }
+}
+
+@keyframes orbFloat2 {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    100% {
+        transform: translate(-50px, -30px) scale(1.15);
+    }
+}
+
+/* Third decorative orb via .logo-glow-behind */
+.logo-glow-behind {
+    position: fixed;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.2), transparent 70%);
+    border-radius: 50%;
+    filter: blur(60px);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 0;
+    animation: orbFloat3 12s ease-in-out infinite alternate;
+}
+
+@keyframes orbFloat3 {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.6;
+    }
+
+    100% {
+        transform: translate(-40%, -45%) scale(1.3);
+        opacity: 1;
+    }
+}
+
+/* ── Floating Particle Stars ── */
+#start-screen .hero-section::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+        radial-gradient(1px 1px at 10% 20%, rgba(255, 255, 255, 0.5), transparent),
+        radial-gradient(1px 1px at 30% 60%, rgba(255, 255, 255, 0.4), transparent),
+        radial-gradient(1.5px 1.5px at 50% 10%, rgba(255, 255, 255, 0.6), transparent),
+        radial-gradient(1px 1px at 70% 80%, rgba(255, 255, 255, 0.3), transparent),
+        radial-gradient(1px 1px at 90% 30%, rgba(255, 255, 255, 0.5), transparent),
+        radial-gradient(1.5px 1.5px at 15% 90%, rgba(255, 255, 255, 0.4), transparent),
+        radial-gradient(1px 1px at 85% 50%, rgba(255, 255, 255, 0.35), transparent),
+        radial-gradient(1px 1px at 40% 40%, rgba(255, 255, 255, 0.45), transparent),
+        radial-gradient(1.5px 1.5px at 60% 75%, rgba(255, 255, 255, 0.3), transparent),
+        radial-gradient(1px 1px at 25% 35%, rgba(255, 255, 255, 0.5), transparent);
+    animation: starsTwinkle 6s ease-in-out infinite alternate;
+}
+
+@keyframes starsTwinkle {
+    0% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+/* ── Hero Section ── */
+.hero-section {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.logo-icon-3d {
+    font-size: 4rem;
+    filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.6));
+    animation: logoBounce 2s infinite ease-in-out, logoGlow 3s infinite alternate;
+}
+
+@keyframes logoBounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes logoGlow {
+    0% {
+        filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.4));
+    }
+
+    100% {
+        filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.8));
+    }
+}
+
+.hero-section h1 {
+    font-family: 'Fredoka', 'Outfit', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #a78bfa 0%, #ec4899 50%, #f97316 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 12px 0 4px;
+    text-shadow: none;
+}
+
+.hero-section .subtitle {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 1px;
+}
+
+.hero-section .tagline {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 6px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+/* ── Decorative Snake Path (SVG winding line in background) ── */
+#start-screen .lobby-cards-container::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.06;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 300'%3E%3Cpath d='M 50 150 C 200 50 350 250 500 150 C 650 50 800 250 950 150 C 1050 80 1150 200 1180 150' fill='none' stroke='%23a78bfa' stroke-width='6' stroke-linecap='round' stroke-dasharray='18 12'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100% auto;
+    animation: snakePathSlither 4s ease-in-out infinite alternate;
+}
+
+@keyframes snakePathSlither {
+    0% {
+        transform: translateX(-8px) scaleY(1);
+    }
+
+    50% {
+        transform: translateX(4px) scaleY(1.05);
+    }
+
+    100% {
+        transform: translateX(8px) scaleY(0.95);
+    }
+}
+
+/* ── Cards Container ── */
+.lobby-cards-container {
+    position: relative;
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    align-items: stretch;
+    max-width: 1200px;
+    margin: 0 auto;
+    z-index: 1;
+}
+
+/* ── Glassmorphism Cards ── */
+.premium-card {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 24px;
+    padding: 28px 24px;
+    flex: 1;
+    min-width: 280px;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.4s ease,
+        border-color 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.premium-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    border-color: rgba(167, 139, 250, 0.3);
+    box-shadow: 0 16px 48px rgba(139, 92, 246, 0.2),
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.premium-card.center-card {
+    transform: translateY(-8px) scale(1.03);
+    border-color: rgba(167, 139, 250, 0.2);
+    box-shadow: 0 12px 40px rgba(139, 92, 246, 0.15),
+        0 8px 32px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.premium-card.center-card:hover {
+    transform: translateY(-12px) scale(1.04);
+}
+
+/* ── Card Header ── */
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 14px;
+    margin-bottom: 4px;
+}
+
+.card-icon {
+    font-size: 1.4rem;
+    filter: drop-shadow(0 0 6px rgba(139, 92, 246, 0.4));
+}
+
+.section-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 0.3px;
+}
+
+/* ── Form Elements (dark themed) ── */
+.form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.45);
+    margin-bottom: 8px;
+}
+
+.toggle-group {
+    display: flex;
+    gap: 8px;
+}
+
+.toggle-btn {
+    flex: 1;
+    padding: 12px;
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.6);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.toggle-btn:hover {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: rgba(139, 92, 246, 0.3);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.toggle-btn.active {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(99, 102, 241, 0.3));
+    border-color: rgba(139, 92, 246, 0.5);
+    color: white;
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.25);
+}
+
+/* Range slider */
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    outline: none;
+    margin-top: 4px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.6);
+}
+
+/* Name inputs */
+.names-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.name-input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.name-icon {
+    font-size: 1.2rem;
+    filter: drop-shadow(0 0 4px rgba(139, 92, 246, 0.3));
+}
+
+.name-input-group input,
+.participant-name-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.9);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.name-input-group input:focus,
+.participant-name-input:focus {
+    outline: none;
+    border-color: rgba(139, 92, 246, 0.5);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15), 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.name-input-group input::placeholder,
+.participant-name-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* Textarea */
+#quiz-import {
+    width: 100%;
+    min-height: 80px;
+    padding: 14px 16px;
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.85);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    resize: vertical;
+    transition: all 0.3s ease;
+}
+
+#quiz-import:focus {
+    outline: none;
+    border-color: rgba(139, 92, 246, 0.5);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+}
+
+#quiz-import::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* Import action buttons */
+.import-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.import-actions button,
+.import-actions .chat-link {
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.7);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.import-actions button:hover,
+.import-actions .chat-link:hover {
+    background: rgba(139, 92, 246, 0.15);
+    border-color: rgba(139, 92, 246, 0.3);
+    color: white;
+}
+
+/* ── Chaos Mode Toggle ── */
+.chaos-toggle-custom {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.chaos-toggle-custom:hover {
+    background: rgba(239, 68, 68, 0.06);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.chaos-glow {
+    display: none;
+}
+
+.chaos-icon {
+    font-size: 1.4rem;
+}
+
+.chaos-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.chaos-main {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.chaos-sub {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.chaos-switch {
+    width: 44px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    flex-shrink: 0;
+}
+
+.chaos-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+input[type="checkbox"] {
+    display: none;
+}
+
+input[type="checkbox"]:checked+.chaos-toggle-custom {
+    border-color: rgba(239, 68, 68, 0.5);
+    background: rgba(239, 68, 68, 0.1);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+}
+
+input[type="checkbox"]:checked+.chaos-toggle-custom .chaos-switch {
+    background: linear-gradient(135deg, #ef4444, #f97316);
+}
+
+input[type="checkbox"]:checked+.chaos-toggle-custom .chaos-switch::after {
+    transform: translateX(20px);
+}
+
+/* ── Premium START QUEST Button ── */
+.start-action-area {
+    margin-top: 48px;
+    text-align: center;
+    z-index: 1;
+    position: relative;
+}
+
+.btn-start-premium {
+    position: relative;
+    padding: 18px 56px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    font-family: 'Fredoka', 'Outfit', sans-serif;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 100px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 40%, #a855f7 100%);
+    color: white;
+    cursor: pointer;
+    overflow: hidden;
+    box-shadow:
+        0 8px 30px rgba(99, 102, 241, 0.4),
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: btnPulseGlow 3s ease-in-out infinite;
+}
+
+.btn-start-premium:hover {
+    transform: translateY(-6px) scale(1.05);
+    box-shadow:
+        0 16px 48px rgba(99, 102, 241, 0.5),
+        0 4px 16px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.btn-start-premium:active {
+    transform: translateY(-2px) scale(0.98);
+}
+
+/* Glow effect inside button */
+.btn-glow-effect {
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(135deg,
+            rgba(139, 92, 246, 0.4),
+            rgba(236, 72, 153, 0.3),
+            rgba(99, 102, 241, 0.4));
+    filter: blur(8px);
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.4s ease;
+}
+
+.btn-start-premium:hover .btn-glow-effect {
+    opacity: 1;
+}
+
+@keyframes btnPulseGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 8px 40px rgba(139, 92, 246, 0.6), 0 2px 12px rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* ── Snake Path Hover Effect on Cards ── */
+.premium-card::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 10%;
+    width: 80%;
+    height: 3px;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(139, 92, 246, 0.6),
+            rgba(236, 72, 153, 0.6),
+            rgba(6, 182, 212, 0.6),
+            transparent);
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    transform: scaleX(0.3);
+}
+
+.premium-card:hover::after {
+    opacity: 1;
+    transform: scaleX(1);
+    animation: snakeShimmer 2s linear infinite;
+}
+
+@keyframes snakeShimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.premium-card {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Snake trail border glow on hover */
+.premium-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 24px;
+    padding: 1px;
+    background: linear-gradient(135deg,
+            rgba(139, 92, 246, 0),
+            rgba(139, 92, 246, 0.3),
+            rgba(236, 72, 153, 0.2),
+            rgba(6, 182, 212, 0.3),
+            rgba(139, 92, 246, 0));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+
+.premium-card:hover::before {
+    opacity: 1;
+    animation: borderSnakeGlow 3s linear infinite;
+}
+
+@keyframes borderSnakeGlow {
+    0% {
+        background-position: 0% 0%;
+    }
+
+    100% {
+        background-position: 200% 200%;
+    }
+}
+
+/* ── Player count label ── */
+#player-count-group strong {
+    color: #a78bfa;
+    font-size: 1.1rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 960px) {
+    .lobby-cards-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .premium-card {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .premium-card.center-card {
+        transform: none;
+    }
+
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+}

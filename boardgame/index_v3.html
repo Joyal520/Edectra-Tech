@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdTechra - Knowledge Quest Arena V3</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style_v3.css?v=5">
+    <link rel="stylesheet" href="start_screen_premium.css?v=1">
+    <link rel="stylesheet" href="game_page_premium.css?v=1">
+</head>
+
+<body>
+
+    <!-- Animated Background Blobs -->
+    <div class="blobs">
+        <div class="blob b1"></div>
+        <div class="blob b2"></div>
+        <div class="blob b3"></div>
+        <div class="blob b4"></div>
+        <div class="blob b5"></div>
+    </div>
+
+    <!-- ==================== START SCREEN ==================== -->
+    <div id="start-screen">
+
+        <!-- Premium Hero Section -->
+        <div class="hero-section">
+            <div class="logo-glow-behind"></div>
+            <div class="logo-icon-3d">🎲</div>
+            <h1>EDTECHRA</h1>
+            <p class="subtitle">Knowledge Quest Arena</p>
+            <p class="tagline">Learn • Compete • Grow</p>
+        </div>
+
+        <!-- 3 Premium Cards Layout -->
+        <div class="lobby-cards-container">
+            <!-- Card 1: Match Settings -->
+            <div class="premium-card">
+                <div class="card-header">
+                    <span class="card-icon">⚙️</span>
+                    <h2 class="section-title">Match Settings</h2>
+                </div>
+
+                <div class="form-group">
+                    <label>Game Mode</label>
+                    <div class="toggle-group">
+                        <button class="toggle-btn active" data-mode="players" onclick="setMode('players')">👥
+                            Multiplayer</button>
+                        <button class="toggle-btn" data-mode="teams" onclick="setMode('teams')">🏆 Teams</button>
+                    </div>
+                </div>
+
+                <div class="form-group" id="player-count-group">
+                    <label>Size: <strong id="player-count-label">2</strong></label>
+                    <input type="range" id="player-count" min="2" max="6" value="2"
+                        oninput="updateCountLabel(this.value)">
+                </div>
+                <!-- Hidden player-list for backward compatibility with app_v3 logic -->
+                <div id="player-list" class="hidden"></div>
+            </div>
+
+            <!-- Card 2: Participants -->
+            <div class="premium-card center-card">
+                <div class="card-header">
+                    <span class="card-icon">👥</span>
+                    <h2 class="section-title">Participants</h2>
+                </div>
+                <div id="participant-names" class="names-grid">
+                    <!-- Name inputs will be injected here by app_v3.js -->
+                </div>
+            </div>
+
+            <!-- Card 3: Content & Extras -->
+            <div class="premium-card">
+                <div class="card-header">
+                    <span class="card-icon">📚</span>
+                    <h2 class="section-title">Content & Extras</h2>
+                </div>
+
+                <div class="form-group">
+                    <label>📋 Custom Quiz (Optional)</label>
+                    <textarea id="quiz-import"
+                        placeholder="TITLE: My Quiz&#10;Q: What is 2+2?&#10;A: 3&#10;..."></textarea>
+                    <div class="import-actions">
+                        <button onclick="copyGPTPrompt()">📄 Prompt</button>
+                        <a href="https://chat.openai.com" target="_blank" class="chat-link">🤖 ChatGPT</a>
+                    </div>
+                </div>
+
+                <div class="form-group chaos-zone">
+                    <label class="chaos-toggle-label">
+                        <input type="checkbox" id="chaos-mode-toggle">
+                        <div class="chaos-toggle-custom">
+                            <div class="chaos-glow"></div>
+                            <span class="chaos-icon">🔥</span>
+                            <div class="chaos-text">
+                                <span class="chaos-main">Chaos Mode</span>
+                                <span class="chaos-sub">Maximum interaction</span>
+                            </div>
+                            <div class="chaos-switch"></div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div><!-- /.lobby-cards-container -->
+
+        <!-- Centralized Premium Start Button -->
+        <div class="start-action-area">
+            <button class="btn-start-premium" onclick="startGame()">
+                <div class="btn-glow-effect"></div>
+                <span>🚀 START QUEST</span>
+            </button>
+        </div>
+
+    </div><!-- /#start-screen -->
+
+    <!-- ==================== GAME SCREEN ==================== -->
+    <div id="game-screen" class="hidden">
+
+        <!-- Top HUD Bar -->
+        <div class="top-hud" id="hud-top">
+            <div class="hud-left">
+                <div class="hud-logo-mini">🎲 Quest Arena</div>
+                <div id="chaos-badge" class="badge badge-chaos hidden"
+                    style="background: var(--red-color); color: white; margin-left: 12px; font-size: 0.75rem; padding: 4px 8px;">
+                    🔥 CHAOS</div>
+            </div>
+            <div class="top-hud-center">
+                <h2 class="game-title">Knowledge Quest</h2>
+                <span class="badge badge-play" id="game-mode-badge" style="display: none;">PLAYERS</span>
+                <div class="turn-indicator">
+                    <span class="text-secondary">TURN:</span>
+                    <span id="hud-player-name" class="player-accent-1" style="margin-left:8px;">PLAYER 1</span>
+                </div>
+            </div>
+            <div class="top-hud-right">
+                <div style="display: none;">
+                    <div id="hud-xp-fill"></div>
+                </div> <!-- Kept for JS compat -->
+                <div class="hud-control-group">
+                    <button class="hud-icon-btn" title="Toggle Theme" onclick="toggleDarkMode()">
+                        🌙
+                    </button>
+                    <button class="hud-icon-btn" title="Fullscreen" onclick="toggleFullScreen()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Board Container (fills center) -->
+        <div id="board-area">
+            <div id="board-scaler">
+                <div id="board">
+                    <!-- Tiles injected by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Dice Overlay (center of board, context-aware) -->
+        <div id="dice-overlay" class="dice-hidden">
+            <div class="dice-scene">
+                <div id="dice-cube">
+                    <!-- Face 1: Center dot -->
+                    <div class="dice-face front">
+                        <span class="dot d1-center"></span>
+                    </div>
+                    <!-- Face 6: Two columns of 3 -->
+                    <div class="dice-face back">
+                        <span class="dot d6-1"></span><span class="dot d6-2"></span>
+                        <span class="dot d6-3"></span><span class="dot d6-4"></span>
+                        <span class="dot d6-5"></span><span class="dot d6-6"></span>
+                    </div>
+                    <!-- Face 3: Diagonal 3 -->
+                    <div class="dice-face right">
+                        <span class="dot d3-1"></span>
+                        <span class="dot d3-2"></span>
+                        <span class="dot d3-3"></span>
+                    </div>
+                    <!-- Face 4: Square 4 -->
+                    <div class="dice-face left">
+                        <span class="dot d4-1"></span><span class="dot d4-2"></span>
+                        <span class="dot d4-3"></span><span class="dot d4-4"></span>
+                    </div>
+                    <!-- Face 2: Diagonal 2 -->
+                    <div class="dice-face top">
+                        <span class="dot d2-1"></span>
+                        <span class="dot d2-2"></span>
+                    </div>
+                    <!-- Face 5: 4 corners + center -->
+                    <div class="dice-face bottom">
+                        <span class="dot d5-1"></span><span class="dot d5-2"></span>
+                        <span class="dot d5-center"></span>
+                        <span class="dot d5-3"></span><span class="dot d5-4"></span>
+                    </div>
+                </div>
+            </div>
+            <!-- Auto roll in V3 -->
+        </div>
+
+        <!-- Quiz Focus Mode Overlay -->
+        <div id="quiz-overlay" class="hidden modal-overlay" style="background: rgba(15, 23, 42, 0.8);">
+            <div class="quiz-panel" id="quiz-panel">
+                <div class="quiz-header">
+                    <div class="quiz-header-top">
+                        <span class="badge badge-play" id="quiz-diff">STANDARD QUESTION</span>
+                        <span
+                            style="font-family: var(--font-heading); font-weight: 700; color: var(--purple-color); font-size: 1.25rem;"
+                            id="quiz-timer-text"></span>
+                    </div>
+                    <p class="quiz-question" id="quiz-question">Question goes here?</p>
+                    <div class="timer-bar-bg">
+                        <div class="timer-bar-fill" id="quiz-xp-timer-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <div id="quiz-options" class="quiz-options"></div>
+            </div>
+            <div id="quiz-footer-hint" class="hidden"></div>
+        </div>
+        <!-- Floating Buzzer Buttons (Bottom of screen) -->
+        <div id="ready-bar" class="hidden floating-buzzers">
+            <div class="buzzer-group">
+                <span class="buzzer-label" id="ready-status-list">Turn Phase</span>
+                <h2 class="buzzer-title" id="ready-title">Ready to Roll?</h2>
+                <div class="buzzer-buttons">
+                    <button class="buzzer buzzer-wait" onclick="answerReady(false)">Wait</button>
+                    <button class="buzzer buzzer-ready" onclick="answerReady(true)">Ready</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Commit Panel (Teacher selects who got it right) -->
+        <div id="commit-overlay" class="hidden">
+            <div class="commit-dialog">
+                <h2>Who got it right?</h2>
+                <p>Select the players/teams that answered correctly to move them forward.</p>
+                <div id="commit-players-grid">
+                    <!-- Checkboxes injected by JS -->
+                </div>
+                <button id="btn-commit-roll" class="btn-primary" onclick="commitAndRoll()">🎲 ROLL FOR
+                    WINNERS</button>
+                <button id="btn-commit-skip" class="btn-secondary" onclick="skipRound()">⏭️ NO ONE (SKIP
+                    ROUND)</button>
+            </div>
+        </div>
+
+
+
+        <!-- Choice Overlay (For interactive decisions) -->
+        <div id="choice-overlay" class="hidden">
+            <div class="choice-container">
+                <h2 id="choice-title">Make Your Choice</h2>
+                <div id="choice-grid"></div>
+            </div>
+        </div>
+
+        <!-- Bottom Leaderboard -->
+        <div style="position: absolute; bottom: 0; width: 100%; z-index: 90;" id="hud-bottom">
+            <div class="leaderboard-container">
+                <div class="leaderboard-strip" id="leaderboard">
+                    <!-- Cards injected by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Victory Screen -->
+    <div id="victory-screen" class="hidden screen-container victory-screen"
+        style="position: fixed; inset: 0; background: var(--bg-color); z-index: 2000;">
+        <div
+            style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+            <div class="confetti-container" id="confetti" style="position: absolute; inset: 0; pointer-events: none;">
+            </div>
+            <div class="badge badge-play" style="margin-bottom: var(--space-8);">GAME OVER</div>
+            <h1 class="text-h1" style="font-size: 4rem; margin-bottom: var(--space-8);">Victory!</h1>
+            <p class="text-body"
+                style="color: var(--text-secondary); margin-bottom: var(--space-32); font-size: 1.25rem;">Well played
+                everyone.</p>
+
+            <div class="podium-container" id="winner-name"
+                style="margin-bottom: var(--space-32); display: flex; gap: 16px; align-items: flex-end; justify-content: center; min-height: 200px;">
+                <!-- Podium injected here via JS -->
+            </div>
+
+            <button class="btn btn-primary" style="padding: 16px 48px; font-size: 1.25rem; margin-top:24px;"
+                onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+
+    <!-- Screen Effects Overlay -->
+    <div id="screen-fx"></div>
+
+    <script src="sounds_v3.js?v=4"></script>
+    <script src="app_v3.js?v=4"></script>
+</body>
+
+</html>

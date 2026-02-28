@@ -1,0 +1,518 @@
+/* ============================================
+   EDTECHRA — Board Game Player UI Styles
+   Mobile-first responsive design
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-card: #1e293b;
+    --border-color: rgba(255, 255, 255, 0.08);
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --blue: #3b82f6;
+    --purple: #8b5cf6;
+    --green: #22c55e;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --font-body: 'Outfit', sans-serif;
+    --font-heading: 'Fredoka', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100dvh;
+    overflow-x: hidden;
+}
+
+/* ======= SCREENS ======= */
+.screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100dvh;
+    padding: 24px;
+    text-align: center;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* ======= JOIN SCREEN ======= */
+.join-logo {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.join-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 32px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.join-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 32px 24px;
+    width: 100%;
+    max-width: 380px;
+}
+
+.form-field {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-field label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.form-field input {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    font-weight: 600;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-field input:focus {
+    border-color: var(--blue);
+}
+
+.form-field input.code-input {
+    text-align: center;
+    font-size: 1.8rem;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    font-family: var(--font-heading);
+    padding: 18px;
+}
+
+.btn-join {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 8px;
+}
+
+.btn-join:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(59, 130, 246, 0.3);
+}
+
+.btn-join:active {
+    transform: scale(0.97);
+}
+
+.btn-join:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.join-error {
+    color: var(--red);
+    font-size: 0.85rem;
+    margin-top: 12px;
+    min-height: 20px;
+}
+
+/* ======= TEAM SELECT SCREEN ======= */
+.team-title {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    margin-bottom: 24px;
+}
+
+.teams-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+    max-width: 380px;
+    margin-bottom: 24px;
+}
+
+.team-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: 18px;
+    padding: 20px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.team-card:hover {
+    transform: translateY(-3px);
+}
+
+.team-card.selected {
+    border-color: var(--blue);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.team-card .team-emoji {
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+.team-card .team-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.team-card .team-count {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+/* ======= LOBBY WAITING SCREEN ======= */
+.waiting-icon {
+    font-size: 4rem;
+    margin-bottom: 16px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.waiting-title {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+}
+
+.waiting-sub {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+}
+
+.waiting-badge {
+    display: inline-block;
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--blue);
+    padding: 8px 20px;
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.15);
+    }
+}
+
+/* ======= QUESTION SCREEN ======= */
+.question-header {
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 24px;
+}
+
+.question-badge {
+    display: inline-block;
+    background: rgba(139, 92, 246, 0.15);
+    color: var(--purple);
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+
+.question-text {
+    font-family: var(--font-heading);
+    font-size: 1.35rem;
+    line-height: 1.4;
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+
+/* Timer bar */
+.timer-bar {
+    width: 100%;
+    max-width: 500px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 100px;
+    margin-bottom: 28px;
+    overflow: hidden;
+}
+
+.timer-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--purple));
+    border-radius: 100px;
+    transition: width 1s linear;
+    width: 100%;
+}
+
+.timer-bar-fill.warning {
+    background: linear-gradient(90deg, var(--amber), var(--red));
+}
+
+.timer-text {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--purple);
+    margin-bottom: 8px;
+}
+
+/* Answer buttons */
+.answers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+    max-width: 500px;
+}
+
+.answer-btn {
+    position: relative;
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: 18px;
+    padding: 22px 16px;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.answer-btn:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.answer-btn:active {
+    transform: scale(0.96);
+}
+
+.answer-btn .opt-prefix {
+    font-size: 0.7rem;
+    font-weight: 800;
+    opacity: 0.5;
+    letter-spacing: 0.1em;
+}
+
+.answer-btn.selected {
+    border-color: var(--blue);
+    background: rgba(59, 130, 246, 0.15);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+}
+
+.answer-btn.correct {
+    border-color: var(--green);
+    background: rgba(34, 197, 94, 0.15);
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
+}
+
+.answer-btn.wrong {
+    border-color: var(--red);
+    background: rgba(239, 68, 68, 0.1);
+    opacity: 0.5;
+}
+
+.answer-btn:disabled {
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Submitted overlay */
+.submitted-overlay {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--green);
+    color: white;
+    padding: 12px 28px;
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    box-shadow: 0 8px 30px rgba(34, 197, 94, 0.3);
+    z-index: 100;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateX(-50%) translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ======= RESULT SCREEN ======= */
+.result-icon {
+    font-size: 5rem;
+    margin-bottom: 16px;
+}
+
+.result-title {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+}
+
+.result-sub {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    margin-bottom: 24px;
+    max-width: 300px;
+}
+
+.result-badge {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.result-badge.win {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--green);
+}
+
+.result-badge.lose {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--red);
+}
+
+.result-badge.frozen {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--blue);
+}
+
+/* ======= STATUS BAR ======= */
+.status-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 200;
+    font-size: 0.8rem;
+}
+
+.status-bar .player-name {
+    font-weight: 700;
+    color: var(--blue);
+}
+
+.status-bar .game-code {
+    color: var(--text-secondary);
+    font-family: monospace;
+    letter-spacing: 0.1em;
+}
+
+/* ======= GAME OVER SCREEN ======= */
+.gameover-rank {
+    font-family: var(--font-heading);
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.gameover-score {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    margin-bottom: 24px;
+}
+
+/* ======= UTILITIES ======= */
+.hidden {
+    display: none !important;
+}
+
+/* Mobile responsive tweaks */
+@media (max-width: 400px) {
+    .answers-grid {
+        gap: 8px;
+    }
+
+    .answer-btn {
+        padding: 16px 12px;
+        font-size: 0.9rem;
+        min-height: 70px;
+    }
+
+    .question-text {
+        font-size: 1.15rem;
+    }
+
+    .join-card {
+        padding: 24px 20px;
+    }
+}

@@ -1,0 +1,73 @@
+// ================================================
+// EDTECHRA Board Game — Firestore Security Rules
+// Deploy via Firebase Console → Firestore → Rules
+// ================================================
+//
+// These rules enforce:
+// - Only the host can modify game state, questions, and correct answers
+// - Players can only write their own player doc
+// - Players can submit exactly ONE answer per round (create only)
+// - Anyone authenticated can read game data
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Board games collection
+    match /boardgames/{gameId} {
+
+      // Anyone authed can read the game doc
+      allow read: if request.auth != null;
+
+      // Only the host can write game state
+      allow create: if request.auth != null;
+      allow update: if request.auth != null
+                    && request.auth.uid == resource.data.hostUid;
+
+      // Players subcollection
+      match /players/{uid} {
+        allow read: if request.auth != null;
+
+        // Players can create/update their own doc
+        allow create: if request.auth != null
+                      && request.auth.uid == uid;
+        allow update: if request.auth != null
+                      && (request.auth.uid == uid
+                          || request.auth.uid == get(/databases/$(database)/documents/boardgames/$(gameId)).data.hostUid);
+      }
+
+      // Teams subcollection
+      match /teams/{teamId} {
+        allow read: if request.auth != null;
+
+        // Only host can create teams
+        allow create: if request.auth != null
+                      && request.auth.uid == get(/databases/$(database)/documents/boardgames/$(gameId)).data.hostUid;
+
+        // Host and players can update (for membersCount increment on join)
+        allow update: if request.auth != null;
+      }
+
+      // Rounds subcollection
+      match /rounds/{roundId} {
+        allow read: if request.auth != null;
+
+        // Only host can create/update rounds
+        allow create: if request.auth != null
+                      && request.auth.uid == get(/databases/$(database)/documents/boardgames/$(gameId)).data.hostUid;
+        allow update: if request.auth != null
+                      && request.auth.uid == get(/databases/$(database)/documents/boardgames/$(gameId)).data.hostUid;
+
+        // Answers subcollection
+        match /answers/{answerUid} {
+          allow read: if request.auth != null;
+
+          // Players can ONLY create their own answer (no updates)
+          allow create: if request.auth != null
+                        && request.auth.uid == answerUid;
+        }
+      }
+    }
+  }
+}

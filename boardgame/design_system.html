@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdTechra | Knowledge Quest Arena UI Subsystem</title>
+
+    <!-- Google Fonts: Outfit and Fredoka -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Design System Styles -->
+    <link rel="stylesheet" href="design_system.css">
+</head>
+
+<body>
+
+    <!-- Fixed Controls for Design System Preview -->
+    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 10000; display: flex; gap: 10px;"
+        class="glass-panel ds-controls">
+        <button id="themeToggle"
+            style="padding: 10px 16px; border-radius: 8px; border: 1px solid var(--surface-border); background: var(--surface-color); color: var(--text-primary); cursor: pointer; font-family: var(--font-body); font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                style="display: none;">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+            <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            Toggle Theme
+        </button>
+    </div>
+
+    <div class="system-container"
+        style="padding: 40px; max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 60px;">
+        <header style="text-align: center; margin-bottom: 20px;">
+            <h1 style="font-size: 3rem; color: var(--primary-color); margin-bottom: 10px;">Knowledge Quest Arena</h1>
+            <p style="font-size: 1.25rem; color: var(--text-secondary);">Premium UI Kit & Screen Mockups</p>
+        </header>
+
+        <!-- Components Showcase Area -->
+        <section id="components-section">
+            <h2
+                style="font-size: 2rem; border-bottom: 2px solid var(--surface-border); padding-bottom: 10px; margin-bottom: 30px;">
+                Components</h2>
+
+            <div id="components-container" style="display: flex; flex-direction: column; gap: 40px;">
+
+                <!-- Component: Top HUD Bar -->
+                <div class="component-card">
+                    <h3 class="text-h3" style="margin-bottom: 16px;">Top HUD Bar</h3>
+                    <div class="top-hud" style="position: relative; border-radius: var(--radius-lg);">
+                        <div class="top-hud-left">
+                            <div class="logo-mark">KQ</div>
+                            <h2 class="game-title">Knowledge Quest</h2>
+                        </div>
+                        <div class="top-hud-center">
+                            <span class="badge badge-play">PLAYERS</span>
+                            <div class="turn-indicator">
+                                <span class="text-secondary">TURN:</span>
+                                <span class="player-accent-2">Player 2</span>
+                            </div>
+                        </div>
+                        <div class="top-hud-right">
+                            <div class="hud-control-group">
+                                <button class="hud-icon-btn" title="Fullscreen">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path
+                                            d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+                                        </path>
+                                    </svg>
+                                </button>
+                                <button class="hud-icon-btn" title="Settings">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                        <path
+                                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                                        </path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Component: Bottom Leaderboard Strip -->
+                <div class="component-card">
+                    <h3 class="text-h3" style="margin-bottom: 16px;">Bottom Leaderboard Strip</h3>
+                    <div class="leaderboard-container">
+                        <div class="leaderboard-strip">
+                            <div class="player-card">
+                                <div class="player-avatar player-bg-1">1</div>
+                                <div class="player-info">
+                                    <span class="player-name">Alex M.</span>
+                                    <span class="player-score">1,250</span>
+                                </div>
+                            </div>
+                            <div class="player-card active-turn">
+                                <div class="player-avatar player-bg-2">2</div>
+                                <div class="player-info">
+                                    <span class="player-name">Sam K.</span>
+                                    <span class="player-score">980</span>
+                                </div>
+                            </div>
+                            <div class="player-card">
+                                <div class="player-avatar player-bg-3">3</div>
+                                <div class="player-info">
+                                    <span class="player-name">Jordan T.</span>
+                                    <span class="player-score">1,420</span>
+                                </div>
+                            </div>
+                            <div class="player-card">
+                                <div class="player-avatar player-bg-4">4</div>
+                                <div class="player-info">
+                                    <span class="player-name">Casey R.</span>
+                                    <span class="player-score">850</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Component: "Ready" Modal -->
+                <div class="component-card">
+                    <h3 class="text-h3" style="margin-bottom: 16px;">"Ready" Modal (Active State)</h3>
+                    <div
+                        style="position: relative; height: 350px; background: url('https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1000&auto=format&fit=crop') center/cover; border-radius: var(--radius-lg); overflow: hidden;">
+                        <div class="modal-overlay" style="position: absolute;">
+                            <div class="ready-modal">
+                                <div class="modal-accent-stripe player-bg-2"></div>
+                                <span class="badge badge-turn">Sam's Turn</span>
+                                <h2>Ready, Sam K.?</h2>
+                                <p class="text-body">It's your turn to roll the dice and face the next challenge.</p>
+                                <div class="modal-actions">
+                                    <button class="btn btn-secondary">Wait</button>
+                                    <button class="btn btn-primary"
+                                        style="background: var(--player-2); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);">Ready</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Component: Quiz Panel -->
+                <div class="component-card">
+                    <h3 class="text-h3" style="margin-bottom: 16px;">Quiz Panel (Challenge Mode)</h3>
+                    <div
+                        style="position: relative; padding: 40px; background: var(--bg-gradient); border-radius: var(--radius-lg); display: flex; justify-content: center;">
+                        <div class="quiz-panel quiz-challenge">
+                            <div class="quiz-header">
+                                <div class="quiz-header-top">
+                                    <span class="badge">CHALLENGE</span>
+                                    <span
+                                        style="font-family: var(--font-heading); font-weight: 700; color: var(--purple-color);">0:14</span>
+                                </div>
+                                <p class="quiz-question">Which planet is known as the Red Planet due to its iron oxide
+                                    surface?</p>
+                                <div class="timer-bar-bg">
+                                    <div class="timer-bar-fill" style="width: 70%;"></div>
+                                </div>
+                            </div>
+                            <div class="quiz-options">
+                                <button class="quiz-option correct">
+                                    <span><span class="option-letter">A</span> Mars</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </button>
+                                <button class="quiz-option">
+                                    <span><span class="option-letter">B</span> Jupiter</span>
+                                </button>
+                                <button class="quiz-option wrong">
+                                    <span><span class="option-letter">C</span> Venus</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                                <button class="quiz-option" disabled>
+                                    <span><span class="option-letter">D</span> Saturn</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Component: Tile Event Popup -->
+                <div class="component-card">
+                    <h3 class="text-h3" style="margin-bottom: 16px;">Tile Event Popup (Cinematic)</h3>
+                    <div
+                        style="position: relative; height: 400px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: var(--radius-lg); overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                        <div class="event-popup-container">
+                            <div class="event-popup-icon"
+                                style="color: var(--danger-color); box-shadow: 0 0 40px var(--danger-glow);">
+                                🌋
+                            </div>
+                            <h2 class="event-popup-title">VOLCANO!</h2>
+                            <p class="event-popup-subtitle">Lose 2 turns and 50 points.</p>
+                            <div class="event-progress-bar">
+                                <div class="event-progress-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Component: Mystery Boxes -->
+                <div class="component-card">
+                    <h3 class="text-h3" style="margin-bottom: 16px;">Mystery Boxes Array</h3>
+                    <div style="padding: 40px; background: var(--bg-gradient); border-radius: var(--radius-lg);">
+                        <div class="mystery-boxes-grid">
+                            <div class="mystery-card">
+                                <div class="mystery-card-inner">
+                                    <div class="mystery-card-front">?</div>
+                                    <div class="mystery-card-back"></div>
+                                </div>
+                            </div>
+                            <div class="mystery-card revealed">
+                                <div class="mystery-card-inner">
+                                    <div class="mystery-card-front">?</div>
+                                    <div class="mystery-card-back win">
+                                        <div class="mystery-result-icon">⭐</div>
+                                        <div class="mystery-result-text">+50 Points</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mystery-card revealed">
+                                <div class="mystery-card-inner">
+                                    <div class="mystery-card-front">?</div>
+                                    <div class="mystery-card-back lose">
+                                        <div class="mystery-result-icon">💀</div>
+                                        <div class="mystery-result-text">Go Back 3</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mystery-card">
+                                <div class="mystery-card-inner">
+                                    <div class="mystery-card-front">?</div>
+                                    <div class="mystery-card-back"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Component: Power Card Reveal -->
+                <div class="component-card">
+                    <h3 class="text-h3" style="margin-bottom: 16px;">Power Card Reveal</h3>
+                    <div
+                        style="padding: 60px 40px; background: rgba(15, 23, 42, 0.9); border-radius: var(--radius-lg); text-align: center;">
+                        <h2 class="text-h2" style="color: white; margin-bottom: 30px;">You Found a Power Card!</h2>
+                        <div class="power-card-wrap">
+                            <div class="power-card">
+                                <div class="power-card-header">SHIELD ACTIVATED</div>
+                                <div class="power-card-body">
+                                    <div class="power-card-icon">🛡️</div>
+                                    <p class="power-card-desc">Protect yourself from the next negative event tile or
+                                        mystery box.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary">Collect Reward</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Screen Mockups Area -->
+        <section id="screens-section">
+            <h2
+                style="font-size: 2rem; border-bottom: 2px solid var(--surface-border); padding-bottom: 10px; margin-bottom: 30px;">
+                Screens</h2>
+
+            <div id="screens-container" style="display: flex; flex-direction: column; gap: 40px;">
+
+                <!-- Screen 1: Start Screen -->
+                <div class="component-card">
+                    <h3 class="text-h3" style="margin-bottom: 16px;">1. Start Screen</h3>
+                    <div class="screen-container start-screen">
+                        <div class="start-overlay">
+                            <div class="start-panel">
+                                <div class="start-logo">🎲</div>
+                                <h1 class="start-title">Knowledge Quest</h1>
+                                <p class="start-subtitle text-body">Enter the arena and test your knowledge!</p>
+                                <input type="text" class="start-input" placeholder="Enter your name..." />
+                                <button class="btn btn-primary" style="width: 100%; font-size: 1.125rem;">Join
+                                    Game</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Screen 2: Game Screen -->
+                <div class="component-card">
+                    <h3 class="text-h3" style="margin-bottom: 16px;">2. Game Screen Layout</h3>
+                    <div class="screen-container">
+                        <!-- Top HUD -->
+                        <div class="top-hud" style="border-radius: 0;">
+                            <div class="top-hud-left">
+                                <div class="logo-mark">KQ</div>
+                                <h2 class="game-title">Knowledge Quest</h2>
+                            </div>
+                            <div class="top-hud-center">
+                                <span class="badge badge-play">PLAYERS</span>
+                                <div class="turn-indicator">
+                                    <span class="text-secondary">TURN:</span>
+                                    <span class="player-accent-1">Alex M.</span>
+                                </div>
+                            </div>
+                            <div class="top-hud-right">
+                                <div class="hud-control-group">
+                                    <button class="hud-icon-btn" title="Fullscreen">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path
+                                                d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+                                            </path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main Game Area -->
+                        <div class="game-layout">
+                            <div class="game-board-area">
+                                <div class="board-container">
+                                    <svg viewBox="0 0 1200 620" class="board-svg"
+                                        style="width: 100%; height: 100%; position: absolute; inset: 0; pointer-events: none;">
+                                        <defs>
+                                            <linearGradient id="grad-start" x1="0%" y1="0%" x2="0%" y2="100%">
+                                                <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                                                <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+                                            </linearGradient>
+                                            <linearGradient id="grad-finish" x1="0%" y1="0%" x2="0%" y2="100%">
+                                                <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+                                                <stop offset="100%" style="stop-color:#4f46e5;stop-opacity:1" />
+                                            </linearGradient>
+                                        </defs>
+
+                                        <!-- Background Scene -->
+                                        <g>
+                                            <ellipse cx="250" cy="160" rx="80" ry="40" fill="#bae6fd" opacity="0.8" />
+                                            <ellipse cx="950" cy="480" rx="100" ry="50" fill="#bae6fd" opacity="0.8" />
+                                        </g>
+
+                                        <!-- Shadow -->
+                                        <path
+                                            d="M 80 120 C 250 20 400 220 550 120 C 700 20 950 20 1050 150 C 1150 300 950 320 800 280 C 600 220 400 380 250 320 C 50 240 50 480 200 520 C 400 580 550 420 750 500 C 900 560 1050 450 1120 540"
+                                            fill="none" stroke="rgba(0,0,0,0.07)" stroke-width="110"
+                                            stroke-linecap="round" stroke-linejoin="round" transform="translate(3,6)"
+                                            style="filter: blur(6px);"></path>
+
+                                        <!-- Base Track -->
+                                        <path
+                                            d="M 80 120 C 250 20 400 220 550 120 C 700 20 950 20 1050 150 C 1150 300 950 320 800 280 C 600 220 400 380 250 320 C 50 240 50 480 200 520 C 400 580 550 420 750 500 C 900 560 1050 450 1120 540"
+                                            fill="none" stroke="#e5e8ef" stroke-width="104" stroke-linecap="round"
+                                            stroke-linejoin="round"></path>
+
+                                        <!-- Highlight -->
+                                        <path
+                                            d="M 80 120 C 250 20 400 220 550 120 C 700 20 950 20 1050 150 C 1150 300 950 320 800 280 C 600 220 400 380 250 320 C 50 240 50 480 200 520 C 400 580 550 420 750 500 C 900 560 1050 450 1120 540"
+                                            fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="76"
+                                            stroke-linecap="round" stroke-linejoin="round"></path>
+
+                                        <!-- Dashes -->
+                                        <path
+                                            d="M 80 120 C 250 20 400 220 550 120 C 700 20 950 20 1050 150 C 1150 300 950 320 800 280 C 600 220 400 380 250 320 C 50 240 50 480 200 520 C 400 580 550 420 750 500 C 900 560 1050 450 1120 540"
+                                            fill="none" stroke="rgba(99,102,241,0.08)" stroke-width="2"
+                                            stroke-dasharray="10 14" stroke-linecap="round"></path>
+                                    </svg>
+
+                                    <!-- Mockup Tiles Absolute Placed to follow path -->
+                                    <div
+                                        style="position: absolute; inset: 0; width: 1200px; height: 620px; box-sizing: border-box; transform-origin: top left; transform: scale(1); pointer-events: auto;">
+                                        <div class="board-tile tile-start"
+                                            style="position: absolute; left: 35px; top: 75px;">START</div>
+                                        <div class="board-tile" style="position: absolute; left: 240px; top: 100px;">1
+                                        </div>
+                                        <div class="board-tile tile-mystery"
+                                            style="position: absolute; left: 400px; top: 125px;"></div>
+                                        <div class="board-tile" style="position: absolute; left: 580px; top: 105px;">4
+                                        </div>
+                                        <div class="board-tile tile-danger"
+                                            style="position: absolute; left: 770px; top: 60px;">5</div>
+                                        <div class="board-tile" style="position: absolute; left: 955px; top: 70px;">6
+                                        </div>
+
+                                        <div class="board-tile tile-mystery"
+                                            style="position: absolute; left: 1050px; top: 170px;">13</div>
+                                        <div class="board-tile" style="position: absolute; left: 950px; top: 290px;">12
+                                        </div>
+                                        <div class="board-tile tile-power"
+                                            style="position: absolute; left: 780px; top: 260px;"></div>
+                                        <div class="board-tile" style="position: absolute; left: 630px; top: 235px;">10
+                                        </div>
+
+                                        <div class="board-tile" style="position: absolute; left: 430px; top: 290px;">9
+                                        </div>
+                                        <div class="board-tile" style="position: absolute; left: 280px; top: 310px;">
+                                            8
+                                            <div class="active-players-stack">
+                                                <div class="player-token player-bg-1"></div>
+                                            </div>
+                                        </div>
+                                        <div class="board-tile" style="position: absolute; left: 110px; top: 310px;">7
+                                        </div>
+
+                                        <div class="board-tile" style="position: absolute; left: 80px; top: 440px;">14
+                                        </div>
+                                        <div class="board-tile tile-danger"
+                                            style="position: absolute; left: 200px; top: 510px;">15</div>
+                                        <div class="board-tile" style="position: absolute; left: 390px; top: 530px;">16
+                                        </div>
+                                        <div class="board-tile" style="position: absolute; left: 560px; top: 440px;">17
+                                        </div>
+                                        <div class="board-tile tile-mystery"
+                                            style="position: absolute; left: 710px; top: 485px;"></div>
+                                        <div class="board-tile" style="position: absolute; left: 900px; top: 510px;">
+                                            19
+                                            <div class="active-players-stack">
+                                                <div class="player-token player-bg-2"></div>
+                                                <div class="player-token player-bg-3"></div>
+                                            </div>
+                                        </div>
+                                        <div class="board-tile tile-finish"
+                                            style="position: absolute; left: 1075px; top: 495px;">FINISH</div>
+                                    </div>
+                                </div>
+                                <div style="position: absolute; bottom: 0; width: 100%;">
+                                    <div class="leaderboard-container">
+                                        <div class="leaderboard-strip">
+                                            <div class="player-card active-turn">
+                                                <div class="player-avatar player-bg-1">1</div>
+                                                <div class="player-info">
+                                                    <span class="player-name">Alex M.</span>
+                                                    <span class="player-score">1,250</span>
+                                                </div>
+                                            </div>
+                                            <div class="player-card">
+                                                <div class="player-avatar player-bg-2">2</div>
+                                                <div class="player-info">
+                                                    <span class="player-name">Sam K.</span>
+                                                    <span class="player-score">980</span>
+                                                </div>
+                                            </div>
+                                            <div class="player-card">
+                                                <div class="player-avatar player-bg-3">3</div>
+                                                <div class="player-info">
+                                                    <span class="player-name">Jordan T.</span>
+                                                    <span class="player-score">1,420</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Sidebar (Quiz / Info) -->
+                            <div class="game-sidebar">
+                                <h3 class="text-h3" style="margin-bottom: 24px;">Current Challenge</h3>
+                                <div class="quiz-panel quiz-challenge"
+                                    style="box-shadow: none; border: 2px solid var(--purple-color);">
+                                    <div class="quiz-header">
+                                        <div class="quiz-header-top">
+                                            <span class="badge">CHALLENGE</span>
+                                            <span
+                                                style="font-family: var(--font-heading); font-weight: 700; color: var(--purple-color);">0:14</span>
+                                        </div>
+                                        <p class="quiz-question">Solve: 15 × 8 = ?</p>
+                                        <div class="timer-bar-bg">
+                                            <div class="timer-bar-fill" style="width: 70%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="quiz-options">
+                                        <button class="quiz-option"><span><span class="option-letter">A</span>
+                                                100</span></button>
+                                        <button class="quiz-option"><span><span class="option-letter">B</span>
+                                                120</span></button>
+                                        <button class="quiz-option"><span><span class="option-letter">C</span>
+                                                115</span></button>
+                                        <button class="quiz-option"><span><span class="option-letter">D</span>
+                                                130</span></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Screen 3: Victory Screen -->
+                <div class="component-card">
+                    <h3 class="text-h3" style="margin-bottom: 16px;">3. Victory Screen</h3>
+                    <div class="screen-container victory-screen">
+                        <div class="badge badge-play" style="margin-bottom: var(--space-8);">GAME OVER</div>
+                        <h1 class="text-h1" style="font-size: 3rem; margin-bottom: var(--space-8);">Victory!</h1>
+                        <p class="text-body" style="color: var(--text-secondary);">Well played everyone.</p>
+
+                        <div class="podium-container">
+                            <!-- 2nd Place -->
+                            <div class="podium-place place-2">
+                                <div class="winner-avatar player-bg-2">2</div>
+                                <div class="text-h3">Sam K.</div>
+                                <div class="text-body" style="color: var(--text-secondary);">1,420</div>
+                                <div class="podium-bar">2</div>
+                            </div>
+                            <!-- 1st Place -->
+                            <div class="podium-place place-1">
+                                <div class="winner-avatar player-bg-1">🏆</div>
+                                <div class="text-h2">Alex M.</div>
+                                <div class="text-body" style="color: var(--text-secondary);">2,150</div>
+                                <div class="podium-bar">1</div>
+                            </div>
+                            <!-- 3rd Place -->
+                            <div class="podium-place place-3">
+                                <div class="winner-avatar player-bg-3">3</div>
+                                <div class="text-h3">Jordan T.</div>
+                                <div class="text-body" style="color: var(--text-secondary);">980</div>
+                                <div class="podium-bar">3</div>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary" style="padding: 16px 48px; font-size: 1.25rem;">Play
+                            Again</button>
+                    </div>
+                </div>
+
+                <!-- Screen 4: Host Controls -->
+                <div class="component-card">
+                    <h3 class="text-h3" style="margin-bottom: 16px;">4. Teacher / Host Dashboard</h3>
+                    <div class="screen-container host-layout">
+                        <!-- Sidebar -->
+                        <div class="host-sidebar">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                                <div class="logo-mark">KQ</div>
+                                <h3 class="text-h3">Host Panel</h3>
+                            </div>
+                            <button class="btn btn-primary" style="width: 100%;">Start New Game</button>
+                            <button class="btn btn-secondary" style="width: 100%;">End Current Game</button>
+                            <div style="margin-top: auto;">
+                                <div class="setting-row">
+                                    <span class="text-body" style="font-weight: 500;">Fullscreen</span>
+                                    <div class="toggle-switch"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main Content -->
+                        <div class="host-main">
+                            <h2 class="text-h2">Game Settings</h2>
+
+                            <div class="host-card">
+                                <h3 class="text-h3" style="margin-bottom: 16px;">Mode Toggles</h3>
+                                <div class="setting-row">
+                                    <div style="display: flex; flex-direction: column;">
+                                        <span class="text-body"
+                                            style="font-weight: 600; color: var(--text-primary);">Chaos Mode</span>
+                                        <span class="text-small">Enable random events and intense challenges</span>
+                                    </div>
+                                    <div class="toggle-switch on"></div>
+                                </div>
+                                <div class="setting-row">
+                                    <div style="display: flex; flex-direction: column;">
+                                        <span class="text-body"
+                                            style="font-weight: 600; color: var(--text-primary);">Teams Mode</span>
+                                        <span class="text-small">Group students into mixed teams</span>
+                                    </div>
+                                    <div class="toggle-switch"></div>
+                                </div>
+                                <div class="setting-row">
+                                    <div style="display: flex; flex-direction: column;">
+                                        <span class="text-body"
+                                            style="font-weight: 600; color: var(--text-primary);">Dark Theme
+                                            (Premium)</span>
+                                        <span class="text-small">Enable premium deep navy aesthetic</span>
+                                    </div>
+                                    <div class="toggle-switch on"
+                                        onclick="document.getElementById('themeToggle').click()"></div>
+                                </div>
+                            </div>
+
+                            <div class="host-card">
+                                <h3 class="text-h3" style="margin-bottom: 16px;">Content Configuration</h3>
+                                <div class="setting-row">
+                                    <span class="text-body" style="font-weight: 500;">Import Quiz (JSON)</span>
+                                    <button class="btn btn-secondary">Upload File</button>
+                                </div>
+                                <div class="setting-row">
+                                    <span class="text-body" style="font-weight: 500;">Per-Turn Timer (seconds)</span>
+                                    <input type="number" class="start-input" style="width: 100px; margin-bottom: 0;"
+                                        value="15" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div>
+
+    <style>
+        .ds-controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .ds-controls button {
+            transition: all var(--transition-fast);
+        }
+    </style>
+
+    <script>
+        // Theme toggle logic
+        const toggleBtn = document.getElementById('themeToggle');
+        const sunIcon = document.getElementById('sunIcon');
+        const moonIcon = document.getElementById('moonIcon');
+
+        let isDark = false;
+
+        toggleBtn.addEventListener('click', () => {
+            isDark = !isDark;
+            if (isDark) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+
+</html>

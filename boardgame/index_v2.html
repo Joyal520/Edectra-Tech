@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdTechra - Knowledge Quest Arena V2</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style_v2.css?v=6">
+</head>
+
+<body>
+
+    <!-- Animated Background Blobs -->
+    <div class="blobs">
+        <div class="blob b1"></div>
+        <div class="blob b2"></div>
+        <div class="blob b3"></div>
+        <div class="blob b4"></div>
+        <div class="blob b5"></div>
+    </div>
+
+    <!-- ==================== START SCREEN ==================== -->
+    <div id="start-screen">
+        <div class="start-card">
+            <div class="start-logo">
+                <div class="logo-icon">🎲</div>
+                <h1>EDTECHRA</h1>
+                <p class="subtitle">Knowledge Quest Arena</p>
+            </div>
+
+            <div class="start-form">
+                <div class="form-group">
+                    <label>Game Mode</label>
+                    <div class="toggle-group">
+                        <button class="toggle-btn active" data-mode="players" onclick="setMode('players')">👥
+                            Multiplayer</button>
+                        <button class="toggle-btn" data-mode="teams" onclick="setMode('teams')">🏆 Teams</button>
+                    </div>
+                </div>
+
+                <div class="form-group" id="player-count-group">
+                    <label>Players: <strong id="player-count-label">2</strong></label>
+                    <input type="range" id="player-count" min="2" max="6" value="2"
+                        oninput="document.getElementById('player-count-label').textContent=this.value">
+                </div>
+
+                <div class="form-group">
+                    <label>📋 Custom Quiz (Optional — Paste EQM Format)</label>
+                    <textarea id="quiz-import"
+                        placeholder="TITLE: My Quiz&#10;Q: What is 2+2?&#10;A: 3&#10;A: 4*&#10;A: 5&#10;A: 6"></textarea>
+                    <div class="import-actions">
+                        <button onclick="copyGPTPrompt()">📄 Copy GPT Prompt</button>
+                        <a href="https://chat.openai.com" target="_blank">🤖 Open ChatGPT</a>
+                    </div>
+                </div>
+
+                <button class="btn-start" onclick="startGame()">
+                    <span>🚀</span> START QUEST
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== GAME SCREEN ==================== -->
+    <div id="game-screen" class="hidden">
+
+        <!-- Top HUD Bar -->
+        <header id="hud-top">
+            <div class="hud-brand">
+                <span class="hud-logo">🎲</span>
+                <span class="hud-title">EDTECHRA QUEST</span>
+            </div>
+            <div class="hud-turn">
+                <span class="hud-label">TURN</span>
+                <span id="hud-player-name">PLAYER 1</span>
+            </div>
+            <div class="hud-right">
+                <div class="hud-timer" id="hud-timer">20</div>
+                <div class="hud-mode" id="hud-mode">PLAYERS</div>
+            </div>
+        </header>
+
+        <!-- Board Container (fills center) -->
+        <div id="board-area">
+            <div id="board-scaler">
+                <div id="board">
+                    <!-- Tiles injected by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Dice Overlay (center of board, context-aware) -->
+        <div id="dice-overlay">
+            <div class="dice-scene">
+                <div id="dice-cube">
+                    <div class="dice-face front">
+                        <span class="dot d5"></span>
+                    </div>
+                    <div class="dice-face back">
+                        <span class="dot d1"></span><span class="dot d2"></span>
+                        <span class="dot d3"></span><span class="dot d4"></span>
+                        <span class="dot d5"></span><span class="dot d6"></span>
+                    </div>
+                    <div class="dice-face right">
+                        <span class="dot d1"></span><span class="dot d3"></span>
+                        <span class="dot d6"></span>
+                    </div>
+                    <div class="dice-face left">
+                        <span class="dot d1"></span><span class="dot d2"></span>
+                        <span class="dot d5"></span><span class="dot d6"></span>
+                    </div>
+                    <div class="dice-face top">
+                        <span class="dot d1"></span><span class="dot d6"></span>
+                    </div>
+                    <div class="dice-face bottom">
+                        <span class="dot d1"></span><span class="dot d2"></span>
+                        <span class="dot d3"></span><span class="dot d5"></span>
+                        <span class="dot d6"></span>
+                    </div>
+                </div>
+            </div>
+            <button id="btn-roll" onclick="rollDice()">🎲 ROLL DICE</button>
+        </div>
+
+        <!-- Quiz Panel (slides in from right) -->
+        <aside id="quiz-panel" class="panel-hidden">
+            <div class="quiz-header">
+                <span class="quiz-badge" id="quiz-diff">NORMAL</span>
+                <span class="quiz-moves" id="quiz-moves">+3 MOVES</span>
+            </div>
+            <div class="quiz-timer-bar">
+                <div id="quiz-timer-fill"></div>
+            </div>
+            <h2 id="quiz-question">Loading...</h2>
+            <div id="quiz-options"></div>
+        </aside>
+
+        <!-- Bottom Leaderboard -->
+        <footer id="hud-bottom">
+            <div id="leaderboard"></div>
+        </footer>
+    </div>
+
+    <!-- Victory Screen -->
+    <div id="victory-screen" class="hidden">
+        <div class="victory-card">
+            <div class="confetti-container" id="confetti"></div>
+            <div class="trophy">🏆</div>
+            <h1 id="winner-name">PLAYER 1</h1>
+            <p>Has conquered the Knowledge Arena!</p>
+            <button class="btn-start" onclick="location.reload()">🔄 Play Again</button>
+        </div>
+    </div>
+
+    <!-- Screen Effects Overlay -->
+    <div id="screen-fx"></div>
+
+    <script src="sounds_v2.js?v=7"></script>
+    <script src="app_v2.js?v=7"></script>
+</body>
+
+</html>

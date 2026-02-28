@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>EdTechra - Join Game</title>
+    <link rel="stylesheet" href="play.css">
+</head>
+
+<body>
+
+    <!-- ===== JOIN SCREEN ===== -->
+    <div id="screen-join" class="screen active">
+        <div class="join-logo">🎲 EDTECHRA</div>
+        <div class="join-subtitle">Knowledge Quest Arena</div>
+        <div class="join-card">
+            <div class="form-field">
+                <label>Game Code</label>
+                <input type="text" id="input-code" class="code-input" maxlength="6" placeholder="______"
+                    autocomplete="off">
+            </div>
+            <div class="form-field">
+                <label>Your Name</label>
+                <input type="text" id="input-name" maxlength="20" placeholder="Enter your name">
+            </div>
+            <button class="btn-join" id="btn-join" onclick="joinGame()">🚀 JOIN GAME</button>
+            <div class="join-error" id="join-error"></div>
+        </div>
+    </div>
+
+    <!-- ===== TEAM SELECT SCREEN ===== -->
+    <div id="screen-teams" class="screen">
+        <div class="team-title">Choose Your Team</div>
+        <div class="teams-grid" id="teams-grid">
+            <!-- Teams injected by JS -->
+        </div>
+        <button class="btn-join" id="btn-team-confirm" onclick="confirmTeam()" disabled>✅ Confirm Team</button>
+    </div>
+
+    <!-- ===== LOBBY WAITING SCREEN ===== -->
+    <div id="screen-lobby" class="screen">
+        <div class="waiting-icon">⏳</div>
+        <div class="waiting-title">You're In!</div>
+        <div class="waiting-sub" id="lobby-status">Waiting for the host to start the game...</div>
+        <div class="waiting-badge" id="lobby-badge">LOBBY</div>
+    </div>
+
+    <!-- ===== QUESTION SCREEN ===== -->
+    <div id="screen-question" class="screen">
+        <div class="question-header">
+            <div class="question-badge" id="q-badge">QUESTION</div>
+            <div class="timer-text" id="q-timer">20s</div>
+            <div class="question-text" id="q-text">Loading question...</div>
+        </div>
+        <div class="timer-bar">
+            <div class="timer-bar-fill" id="q-timer-fill"></div>
+        </div>
+        <div class="answers-grid" id="q-answers">
+            <!-- Answer buttons injected by JS -->
+        </div>
+        <div class="submitted-overlay hidden" id="submitted-badge">✅ Answer Submitted!</div>
+    </div>
+
+    <!-- ===== RESULT SCREEN ===== -->
+    <div id="screen-result" class="screen">
+        <div class="result-icon" id="result-icon">🎯</div>
+        <div class="result-title" id="result-title">Round Complete</div>
+        <div class="result-sub" id="result-sub">Waiting for results...</div>
+        <div class="result-badge" id="result-badge"></div>
+    </div>
+
+    <!-- ===== GAME OVER SCREEN ===== -->
+    <div id="screen-gameover" class="screen">
+        <div class="result-icon">🏆</div>
+        <div class="result-title">Game Over!</div>
+        <div class="gameover-rank" id="go-rank">#1</div>
+        <div class="gameover-score" id="go-score">Score: 0</div>
+        <button class="btn-join" onclick="location.reload()" style="max-width: 260px;">🔄 Play Again</button>
+    </div>
+
+    <!-- Status bar (visible during game) -->
+    <div class="status-bar hidden" id="status-bar">
+        <span class="player-name" id="sb-name">Player</span>
+        <span class="game-code" id="sb-code">CODE</span>
+    </div>
+
+    <script type="module" src="play.js"></script>
+</body>
+
+</html>
