@@ -375,36 +375,38 @@ body {
 /* Answer buttons */
 .answers-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    grid-template-columns: 1fr;
+    gap: 16px;
     width: 100%;
     max-width: 500px;
+    margin-bottom: 40px;
 }
 
 .answer-btn {
     position: relative;
-    background: var(--bg-card);
-    border: 2px solid var(--border-color);
-    border-radius: 18px;
-    padding: 22px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 24px 20px;
     color: var(--text-primary);
     font-family: var(--font-body);
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 1.15rem;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s;
-    text-align: center;
-    min-height: 80px;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-align: left;
+    min-height: 90px;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 6px;
+    gap: 16px;
+    width: 100%;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .answer-btn:hover {
-    transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .answer-btn:active {
@@ -412,60 +414,61 @@ body {
 }
 
 .answer-btn .opt-prefix {
-    font-size: 0.7rem;
-    font-weight: 800;
-    opacity: 0.5;
-    letter-spacing: 0.1em;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    flex-shrink: 0;
 }
 
 .answer-btn.selected {
     border-color: var(--blue);
-    background: rgba(59, 130, 246, 0.15);
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+    background: rgba(59, 130, 246, 0.2);
+    box-shadow: 0 0 25px rgba(59, 130, 246, 0.3);
 }
 
-.answer-btn.correct {
-    border-color: var(--green);
-    background: rgba(34, 197, 94, 0.15);
-    box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
-}
-
-.answer-btn.wrong {
-    border-color: var(--red);
-    background: rgba(239, 68, 68, 0.1);
-    opacity: 0.5;
+.answer-btn.selected .opt-prefix {
+    background: var(--blue);
+    color: white;
 }
 
 .answer-btn:disabled {
     cursor: not-allowed;
-    transform: none;
+    opacity: 0.6;
+    transform: none !important;
 }
 
 /* Submitted overlay */
 .submitted-overlay {
     position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 30px;
+    left: 40px;
+    right: 40px;
+    padding: 16px;
     background: var(--green);
     color: white;
-    padding: 12px 28px;
-    border-radius: 100px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    box-shadow: 0 8px 30px rgba(34, 197, 94, 0.3);
+    border-radius: 16px;
+    font-weight: 800;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(34, 197, 94, 0.4);
     z-index: 100;
-    animation: slideUp 0.3s ease-out;
+    animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 @keyframes slideUp {
-    from {
-        transform: translateX(-50%) translateY(20px);
+    0% {
+        transform: translateY(100px);
         opacity: 0;
     }
 
-    to {
-        transform: translateX(-50%) translateY(0);
+    100% {
+        transform: translateY(0);
         opacity: 1;
     }
 }
@@ -554,6 +557,38 @@ body {
 }
 
 /* ======= UTILITIES ======= */
+@keyframes timerShake {
+    0% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-3px) rotate(-1deg);
+    }
+
+    50% {
+        transform: translateX(3px) rotate(1deg);
+    }
+
+    75% {
+        transform: translateX(-3px) rotate(-1deg);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+.timer-text.danger {
+    color: var(--red);
+    animation: timerShake 0.2s infinite;
+}
+
+.timer-bar-fill.danger {
+    background: linear-gradient(90deg, #f87171, #ef4444);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
 .hidden {
     display: none !important;
 }

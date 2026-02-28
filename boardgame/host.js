@@ -100,6 +100,8 @@ window.createGame = async function () {
         const gameRef = Fire.doc(Fire.collection(db, 'boardgames'));
         hostGameId = gameRef.id;
 
+        const chaosModeEnabled = document.getElementById('host-chaos-toggle').checked;
+
         await Fire.setDoc(gameRef, {
             mode: gameMode,
             state: GameState.LOBBY,
@@ -109,6 +111,7 @@ window.createGame = async function () {
             currentRoundId: null,
             currentQuestionIndex: 0,
             timerEndsAt: null,
+            chaosMode: chaosModeEnabled,
             settings: {
                 timerSeconds: timerSeconds,
                 maxTeams: 4,
@@ -319,6 +322,16 @@ function startGameStateListener() {
         currentState = data.state;
         currentRoundId = data.currentRoundId;
 
+        // Sync Chaos Mode global (from app_v3.js)
+        if (typeof data.chaosMode !== 'undefined') {
+            window.chaosMode = data.chaosMode;
+            const badge = document.getElementById('chaos-badge');
+            if (badge) {
+                if (window.chaosMode) badge.classList.remove('hidden');
+                else badge.classList.add('hidden');
+            }
+        }
+
         // Update round status badge
         updateControlsUI();
     });
@@ -348,8 +361,10 @@ window.hostStartRound = async function () {
 
     // Create round doc
     const roundRef = Fire.doc(db, 'boardgames', hostGameId, 'rounds', roundId);
+    // Note: In AAA design, options are in questions doc, but here we push to round doc for simplicity
+    // but the Host UI will be instructed not to display them.
     await Fire.setDoc(roundRef, {
-        questionIndex: currentQuestionIndex,
+        questionId: currentQuestionIndex, // Using index as ID
         status: 'open',
         timerEndsAt: timerEndsAt,
         correctOptionIndex: q.correctIndex,
@@ -362,13 +377,17 @@ window.hostStartRound = async function () {
         overrideLog: []
     });
 
-    // Update game doc
+    // Update game doc with AAA public info
     const gameRef = Fire.doc(db, 'boardgames', hostGameId);
     await Fire.updateDoc(gameRef, {
         state: GameState.QUESTION,
         currentRoundId: roundId,
         currentQuestionIndex: currentQuestionIndex,
-        timerEndsAt: timerEndsAt
+        timerEndsAt: timerEndsAt,
+        questionPublic: {
+            text: q.question,
+            id: currentQuestionIndex
+        }
     });
 
     currentQuestionIndex++;
@@ -722,6 +741,15 @@ function animateOnePlayerRoll(enginePlayer) {
         cube.classList.add('rolling');
         if (window.sounds) window.sounds.play('roll');
 
+        let hasResolved = false;
+        const safetyTimeout = setTimeout(() => {
+            if (!hasResolved) {
+                console.warn('[Host] Movement safety timeout triggered for', enginePlayer.name);
+                hasResolved = true;
+                resolve();
+            }
+        }, 12000); // 12s safety limit
+
         setTimeout(() => {
             cube.classList.remove('rolling');
             cube.style.transform = faces[roll];
@@ -732,7 +760,11 @@ function animateOnePlayerRoll(enginePlayer) {
 
                 // Move using existing movePlayer
                 movePlayer(enginePlayer, roll, () => {
-                    setTimeout(resolve, 1500);
+                    if (!hasResolved) {
+                        hasResolved = true;
+                        clearTimeout(safetyTimeout);
+                        setTimeout(resolve, 1500);
+                    }
                 });
             }, 1200);
         }, 1200);
@@ -781,8 +813,14 @@ function startAnswerListener(roundId) {
         updateParticipationUI();
 
         // Auto-resolve when everyone answered
-        if (answeredCount >= totalPlayers && totalPlayers > 0) {
-            console.log('[Host] All players answered. Consider resolving.');
+        if (answeredCount >= totalPlayers && totalPlayers > 0 && currentState === GameState.QUESTION) {
+            console.log('[Host] All players answered. Auto-resolving in 1.5s...');
+            setTimeout(() => {
+                // Re-check state and count before resolving
+                if (answeredCount >= totalPlayers && currentState === GameState.QUESTION) {
+                    hostResolveRound();
+                }
+            }, 1500);
         }
     });
 }
@@ -845,15 +883,12 @@ function showHostQuestion(q) {
     panel.classList.remove('is-challenge', 'panel-hidden', 'panel-shake');
 
     const grid = document.getElementById('quiz-options');
-    grid.innerHTML = '';
-    q.options.forEach((opt, i) => {
-        const btn = document.createElement('button');
-        btn.className = 'opt-btn';
-        btn.innerHTML = `<span class="opt-prefix">${String.fromCharCode(65 + i)}</span> <span class="opt-text">${opt}</span>`;
-        btn.disabled = true; // Host doesn't answer
-        if (i === q.correctIndex) btn.dataset.correct = "true";
-        grid.appendChild(btn);
-    });
+    grid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: rgba(255,255,255,0.05); border-radius: 20px; border: 1px dashed rgba(255,255,255,0.1);">
+            <div style="font-size: 2rem; margin-bottom: 10px;">📱</div>
+            <div style="color: #94a3b8; font-size: 1.1rem;">Options are visible on players' devices</div>
+        </div>
+    `;
 
     document.getElementById('quiz-overlay').classList.remove('hidden');
 }

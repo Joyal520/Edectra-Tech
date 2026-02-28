@@ -308,8 +308,9 @@ function loadQuestion(gameData) {
             return;
         }
 
-        // Display question
-        document.getElementById('q-text').textContent = round.question || 'Question loading...';
+        // Display question (AAA: fetch public text if private is hidden)
+        const qText = round.question || (gameData.questionPublic ? gameData.questionPublic.text : 'Question loading...');
+        document.getElementById('q-text').textContent = qText;
         document.getElementById('q-badge').textContent = round.isChallenge ? '🔥 HARD CHALLENGE' : 'QUESTION';
 
         // Display options
@@ -388,7 +389,11 @@ function startClientTimer(endsAt) {
         fill.style.width = `${Math.min(100, pct)}%`;
 
         if (remaining <= 5000) {
-            fill.classList.add('warning');
+            fill.classList.add('danger');
+            text.classList.add('danger');
+        } else {
+            fill.classList.remove('danger');
+            text.classList.remove('danger');
         }
 
         if (remaining <= 0) {
