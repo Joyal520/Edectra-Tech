@@ -35,7 +35,7 @@
             <div class="setup-card">
                 <h3>⚙️ Game Settings</h3>
                 <label>Game Mode</label>
-                <select id="host-mode">
+                <select id="host-mode" onchange="onModeChange()">
                     <option value="solo">👤 Solo (Individual Players)</option>
                     <option value="teams">🏆 Teams (Group Play)</option>
                 </select>
@@ -46,6 +46,16 @@
                 <label>
                     <input type="checkbox" id="host-chaos-toggle"> 🔥 Chaos Mode
                 </label>
+
+                <!-- Team Names (visible only in Teams mode) -->
+                <div id="team-names-section" style="display:none; margin-top: 16px;">
+                    <label>Team Names</label>
+                    <div id="team-names-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                    <button onclick="addTeamNameField()"
+                        style="margin-top: 8px; padding: 8px 16px; background: rgba(139,92,246,0.2); border: 1px solid rgba(139,92,246,0.3); border-radius: 12px; color: #a78bfa; font-weight: 700; font-size: 0.8rem; cursor: pointer; font-family: inherit;">
+                        + Add Team
+                    </button>
+                </div>
             </div>
 
             <!-- Quiz Import -->

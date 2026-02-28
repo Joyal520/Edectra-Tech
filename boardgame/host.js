@@ -37,6 +37,38 @@ let unsubGame = null;
 let unsubPlayers = null;
 let unsubAnswers = null;
 
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+const audioCtx = new AudioCtx();
+
+/* ======= HOST UI HELPERS ======= */
+window.onModeChange = function () {
+    const mode = document.getElementById('host-mode').value;
+    const teamSection = document.getElementById('team-names-section');
+    if (mode === 'teams') {
+        teamSection.style.display = 'block';
+        // Add two default team fields if empty
+        const list = document.getElementById('team-names-list');
+        if (list.children.length === 0) {
+            addTeamNameField('Team Alpha');
+            addTeamNameField('Team Beta');
+        }
+    } else {
+        teamSection.style.display = 'none';
+    }
+};
+
+window.addTeamNameField = function (defName = '') {
+    const list = document.getElementById('team-names-list');
+    const div = document.createElement('div');
+    div.style.display = 'flex';
+    div.style.gap = '8px';
+    div.innerHTML = `
+        <input type="text" class="team-name-input" value="${defName}" placeholder="Enter Team Name" style="flex: 1; padding: 10px 14px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; color: #f1f5f9;">
+        <button onclick="this.parentElement.remove()" style="background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.3); border-radius: 12px; color: #ef4444; width: 40px; cursor: pointer;">✕</button>
+    `;
+    list.appendChild(div);
+};
+
 /* ======= INIT ======= */
 onAuthReady(async (user) => {
     hostUid = user.uid;
@@ -100,11 +132,17 @@ window.createGame = async function () {
 
         // Create teams if team mode
         if (gameMode === GameMode.TEAMS) {
-            for (let i = 0; i < 4; i++) {
+            const teamInputs = document.querySelectorAll('.team-name-input');
+            const teamNames = Array.from(teamInputs).map(i => i.value.trim()).filter(n => n !== '');
+
+            // If no names provided, use defaults
+            const finalTeamNames = teamNames.length > 0 ? teamNames : ['TEAM ALPHA', 'TEAM BETA'];
+
+            for (let i = 0; i < finalTeamNames.length; i++) {
                 const teamRef = Fire.doc(Fire.collection(db, 'boardgames', hostGameId, 'teams'));
                 await Fire.setDoc(teamRef, {
-                    name: TEAM_NAMES[i],
-                    color: TEAM_COLORS[i],
+                    name: finalTeamNames[i].toUpperCase(),
+                    color: TEAM_COLORS[i % TEAM_COLORS.length],
                     position: 0,
                     score: 0,
                     frozenNextTurn: false,

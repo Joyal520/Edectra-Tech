@@ -38,27 +38,18 @@ function showError(msg) {
 }
 
 /* ======= JOIN FLOW ======= */
-window.joinGame = async function () {
+window.checkPin = async function () {
     const codeInput = document.getElementById('input-code');
-    const nameInput = document.getElementById('input-name');
     const code = codeInput.value.trim().toUpperCase();
-    const name = nameInput.value.trim();
 
     if (code.length !== 6) { showError('Enter a 6-character game code'); return; }
-    if (!name || name.length < 1) { showError('Enter your name'); return; }
 
-    const btn = document.getElementById('btn-join');
+    const btn = document.getElementById('btn-check-pin');
     btn.disabled = true;
-    btn.textContent = '⏳ Joining...';
+    btn.textContent = '🔍 Checking...';
     showError('');
 
     try {
-        // Auth
-        const user = await ensureAnonAuth();
-        myUid = user.uid;
-        myName = name.toUpperCase();
-
-        // Find game by join code
         const gamesRef = Fire.collection(db, 'boardgames');
         const q = Fire.query(gamesRef, Fire.where('joinCode', '==', code), Fire.limit(1));
         const snap = await Fire.getDocs(q);
@@ -66,7 +57,7 @@ window.joinGame = async function () {
         if (snap.empty) {
             showError('Game not found. Check the code.');
             btn.disabled = false;
-            btn.textContent = '🚀 JOIN GAME';
+            btn.textContent = '🔍 FIND GAME';
             return;
         }
 
@@ -74,20 +65,95 @@ window.joinGame = async function () {
         gameId = gameDoc.id;
         const gameData = gameDoc.data();
 
-        // Check game state
         if (gameData.state !== GameState.LOBBY) {
             showError('Game already started. Cannot join.');
             btn.disabled = false;
-            btn.textContent = '🚀 JOIN GAME';
+            btn.textContent = '🔍 FIND GAME';
             return;
         }
+
+        // Success - show next step
+        document.getElementById('join-step-pin').classList.add('hidden');
+        document.getElementById('join-step-details').classList.remove('hidden');
+        document.getElementById('sb-code').textContent = code;
+
+        if (gameData.mode === GameMode.TEAMS) {
+            document.getElementById('join-teams-area').classList.remove('hidden');
+            loadTeams();
+        } else {
+            document.getElementById('join-teams-area').classList.add('hidden');
+        }
+
+    } catch (err) {
+        console.error('Check PIN error:', err);
+        showError('Error checking PIN. Try again.');
+        btn.disabled = false;
+        btn.textContent = '🔍 FIND GAME';
+    }
+};
+
+window.resetJoin = function () {
+    gameId = null;
+    document.getElementById('join-step-details').classList.add('hidden');
+    document.getElementById('join-step-pin').classList.remove('hidden');
+    document.getElementById('btn-check-pin').disabled = false;
+    document.getElementById('btn-check-pin').textContent = '🔍 FIND GAME';
+};
+
+async function loadTeams() {
+    const list = document.getElementById('input-teams-list');
+    list.innerHTML = '<div style="color:#94a3b8; font-size: 0.8rem;">Loading teams...</div>';
+
+    const teamsRef = Fire.collection(db, 'boardgames', gameId, 'teams');
+    const snap = await Fire.getDocs(teamsRef);
+
+    list.innerHTML = '';
+    snap.forEach(doc => {
+        const team = doc.data();
+        const div = document.createElement('div');
+        div.className = 'join-team-item';
+        div.innerHTML = `
+            <span class="team-dot" style="background: ${team.color}"></span>
+            <span class="team-name-text">${team.name}</span>
+        `;
+        div.onclick = () => {
+            document.querySelectorAll('.join-team-item').forEach(i => i.classList.remove('selected'));
+            div.classList.add('selected');
+            myTeamId = doc.id;
+        };
+        list.appendChild(div);
+    });
+}
+
+window.joinGame = async function () {
+    const nameInput = document.getElementById('input-name');
+    const name = nameInput.value.trim();
+
+    if (!name || name.length < 1) { showDetailsError('Enter your name'); return; }
+
+    // If team mode, MUST pick a team
+    const teamsArea = document.getElementById('join-teams-area');
+    if (!teamsArea.classList.contains('hidden') && !myTeamId) {
+        showDetailsError('Please pick a team');
+        return;
+    }
+
+    const btn = document.getElementById('btn-join');
+    btn.disabled = true;
+    btn.textContent = '🚀 Joining...';
+    showDetailsError('');
+
+    try {
+        const user = await ensureAnonAuth();
+        myUid = user.uid;
+        myName = name.toUpperCase();
 
         // Write player doc
         const playerRef = Fire.doc(db, 'boardgames', gameId, 'players', myUid);
         await Fire.setDoc(playerRef, {
             displayName: myName,
             role: 'player',
-            teamId: null,
+            teamId: myTeamId || null,
             connected: true,
             lastSeenAt: TS(),
             score: 0,
@@ -95,25 +161,27 @@ window.joinGame = async function () {
             frozenNextTurn: false
         });
 
-        // Update status bar
-        document.getElementById('sb-name').textContent = myName;
-        document.getElementById('sb-code').textContent = code;
-
-        // Check if team mode
-        if (gameData.mode === GameMode.TEAMS) {
-            showTeamSelect(gameData);
-        } else {
-            showScreen('screen-lobby');
-            startGameListener();
+        // If team, increment count
+        if (myTeamId) {
+            const teamRef = Fire.doc(db, 'boardgames', gameId, 'teams', myTeamId);
+            await Fire.updateDoc(teamRef, { membersCount: Fire.increment(1) });
         }
+
+        document.getElementById('sb-name').textContent = myName;
+        showScreen('screen-lobby');
+        startGameListener();
 
     } catch (err) {
         console.error('Join error:', err);
-        showError('Failed to join. Try again.');
+        showDetailsError('Failed to join. Try again.');
         btn.disabled = false;
         btn.textContent = '🚀 JOIN GAME';
     }
 };
+
+function showDetailsError(msg) {
+    document.getElementById('join-error-details').textContent = msg;
+}
 
 /* ======= TEAM SELECT ======= */
 let selectedTeamId = null;
