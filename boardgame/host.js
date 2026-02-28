@@ -359,12 +359,14 @@ window.hostStartRound = async function () {
     const endMs = now.toMillis() + (timerSeconds * 1000);
     const timerEndsAt = Fire.Timestamp.fromMillis(endMs);
 
+    console.log('[Host] Starting round:', roundId, 'Question:', q.question);
+
     // Create round doc
     const roundRef = Fire.doc(db, 'boardgames', hostGameId, 'rounds', roundId);
-    // Note: In AAA design, options are in questions doc, but here we push to round doc for simplicity
-    // but the Host UI will be instructed not to display them.
+    console.log('[Host] Round doc path:', roundRef.path);
+
     await Fire.setDoc(roundRef, {
-        questionId: currentQuestionIndex, // Using index as ID
+        questionId: currentQuestionIndex,
         status: 'open',
         timerEndsAt: timerEndsAt,
         correctOptionIndex: q.correctIndex,
@@ -376,6 +378,8 @@ window.hostStartRound = async function () {
         resolvedBy: null,
         overrideLog: []
     });
+
+    console.log('[Host] Round doc written');
 
     // Update game doc with AAA public info
     const gameRef = Fire.doc(db, 'boardgames', hostGameId);
@@ -389,6 +393,8 @@ window.hostStartRound = async function () {
             id: currentQuestionIndex
         }
     });
+
+    console.log('[Host] Game doc updated with roundId:', roundId);
 
     currentQuestionIndex++;
     currentState = GameState.QUESTION;
@@ -406,7 +412,7 @@ window.hostStartRound = async function () {
     // Update controls
     updateControlsUI();
 
-    console.log('[Host] Round started:', roundId);
+    console.log('[Host] Round setup complete');
 };
 
 // Extend timer

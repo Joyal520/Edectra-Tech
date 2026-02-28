@@ -254,6 +254,7 @@ function startGameListener() {
             case GameState.QUESTION:
                 if (data.currentRoundId !== currentRoundId) {
                     currentRoundId = data.currentRoundId;
+                    console.log('[Player] Transitioning to QUESTION for round:', currentRoundId);
                     hasSubmitted = false;
                     loadQuestion(data);
                 }
@@ -291,49 +292,74 @@ function startGameListener() {
 
 /* ======= QUESTION DISPLAY ======= */
 function loadQuestion(gameData) {
+    const qEl = document.getElementById('q-text');
+    console.log('[Player] loadQuestion started for round:', currentRoundId);
+    if (qEl) qEl.textContent = 'Fetching round data...';
+
     // Listen for the round doc to get the question
     if (unsubRound) unsubRound();
 
+    if (!currentRoundId) {
+        console.warn('[Player] loadQuestion called but currentRoundId is null');
+        if (qEl) qEl.textContent = 'Error: No round ID';
+        return;
+    }
+
+    const roundPath = `boardgames/${gameId}/rounds/${currentRoundId}`;
+    console.log('[Player] Listening to round:', roundPath);
     const roundRef = Fire.doc(db, 'boardgames', gameId, 'rounds', currentRoundId);
+
     unsubRound = Fire.onSnapshot(roundRef, (snap) => {
-        if (!snap.exists()) return;
+        console.log('[Player] Round snap. Exists:', snap.exists());
+        if (!snap.exists()) {
+            if (qEl) qEl.textContent = `Waiting for round data... (${currentRoundId})`;
+            return;
+        }
+
         const round = snap.data();
+        console.log('[Player] Round data:', round);
+
+        // Display question text
+        const qText = round.question || (gameData.questionPublic ? gameData.questionPublic.text : 'Loading question text...');
+        if (qEl) qEl.textContent = qText;
+        const badge = document.getElementById('q-badge');
+        if (badge) badge.textContent = round.isChallenge ? '🔥 HARD CHALLENGE' : 'QUESTION';
 
         if (round.status === 'locked' || round.status === 'resolved') {
             clearInterval(timerInterval);
             disableAllButtons();
-            if (round.status === 'resolved') {
-                showRoundResult(gameData);
-            }
+            if (round.status === 'resolved') showRoundResult(gameData);
             return;
         }
 
-        // Display question (AAA: fetch public text if private is hidden)
-        const qText = round.question || (gameData.questionPublic ? gameData.questionPublic.text : 'Question loading...');
-        document.getElementById('q-text').textContent = qText;
-        document.getElementById('q-badge').textContent = round.isChallenge ? '🔥 HARD CHALLENGE' : 'QUESTION';
-
-        // Display options
+        // Render Answer Options
         const grid = document.getElementById('q-answers');
-        grid.innerHTML = '';
-        const options = round.options || [];
-        options.forEach((opt, i) => {
-            const btn = document.createElement('button');
-            btn.className = 'answer-btn';
-            btn.innerHTML = `<span class="opt-prefix">${String.fromCharCode(65 + i)}</span> ${opt}`;
-            btn.onclick = () => submitAnswer(i, btn);
-            if (hasSubmitted) btn.disabled = true;
-            grid.appendChild(btn);
-        });
+        if (grid) {
+            grid.innerHTML = '';
+            const options = round.options || [];
+            options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.innerHTML = `<span class="opt-prefix">${String.fromCharCode(65 + i)}</span> ${opt}`;
+                btn.onclick = () => submitAnswer(i, btn);
+                if (hasSubmitted) btn.disabled = true;
+                grid.appendChild(btn);
+            });
+        }
 
         // Timer
         if (round.timerEndsAt) {
             startClientTimer(round.timerEndsAt);
         }
+    }, (err) => {
+        console.error('[Player] Round snap error:', err);
+        if (qEl) qEl.textContent = 'Connection Error: ' + err.message;
     });
 
-    // Hide submitted badge
-    document.getElementById('submitted-badge').classList.add('hidden');
+    // Reset UI state
+    const submittedBadge = document.getElementById('submitted-badge');
+    if (submittedBadge && !hasSubmitted) submittedBadge.classList.add('hidden');
+
     showScreen('screen-question');
 }
 
